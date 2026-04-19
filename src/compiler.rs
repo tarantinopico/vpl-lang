@@ -235,6 +235,13 @@ fn compile_expr(expr: &Expr) -> String {
                 "tui_draw_button" => format!("builtin_tui_draw_button({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
                 "tui_menu" => format!("builtin_tui_menu({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
                 "tui_cursor_pos" => format!("builtin_tui_cursor_pos({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "tui_draw_shadow" => format!("builtin_tui_draw_shadow({}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string())),
+                "tui_box_custom" => format!("builtin_tui_box_custom({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
+                "tui_get_cursor" => "builtin_tui_get_cursor()".to_string(),
+                "tui_draw_rect" => format!("builtin_tui_draw_rect({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
+                "tui_draw_line" => format!("builtin_tui_draw_line({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
+                "tui_clear_area" => format!("builtin_tui_clear_area({}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string())),
+                "tui_draw_circle" => format!("builtin_tui_draw_circle({}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string())),
                 
                 // Utils & Data
                 "input" => "builtin_input()".to_string(),
@@ -336,11 +343,15 @@ fn compile_expr(expr: &Expr) -> String {
                 "math_gcd" => format!("builtin_math_gcd({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "math_lcm" => format!("builtin_math_lcm({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "math_factorial" => format!("builtin_math_factorial({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_clamp" => format!("builtin_math_clamp({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "math_lerp" => format!("builtin_math_lerp({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "math_dist" => format!("builtin_math_dist({}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string())),
                 
                 // Logic
                 "logic_and" => format!("builtin_logic_and({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "logic_or" => format!("builtin_logic_or({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "logic_not" => format!("builtin_logic_not({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "logic_xor" => format!("builtin_logic_xor({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 
                 // Logic/Bitwise
                 "bit_and" => format!("builtin_bit_and({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
@@ -385,6 +396,8 @@ fn compile_expr(expr: &Expr) -> String {
                 "net_hostname" => "builtin_sys_hostname()".to_string(),
                 "net_ping_ms" => format!("builtin_net_ping_ms({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "net_resolve" => format!("builtin_net_resolve({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "net_http_status" => format!("builtin_net_http_status({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "net_is_online" => "builtin_net_is_online()".to_string(),
                 
                 // GUI
                 "gui_msg" => format!("builtin_gui_msg({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
@@ -401,6 +414,7 @@ fn compile_expr(expr: &Expr) -> String {
                 "gui_scale" => format!("builtin_gui_scale({}, {}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string()), arg_strs.get(5).unwrap_or(&"Value::None".to_string())),
                 "gui_notify" => format!("builtin_gui_notify({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "gui_text_info" => format!("builtin_gui_text_info({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "gui_progress" => format!("builtin_gui_progress({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 
                 // Color Tools
                 "color_rgb" => format!("builtin_color_rgb({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
@@ -430,7 +444,7 @@ fn generate_runtime(used: &HashSet<String>) -> (String, Vec<String>) {
     if used.iter().any(|x| x.starts_with("str_") || x.starts_with("num_to_") || x == "type_of" || x == "json_stringify") { r.push_str(STR_RUNTIME); mods.push("STRING/DATA".to_string()); }
     if used.iter().any(|x| x.starts_with("math_")) { r.push_str(MATH_RUNTIME); mods.push("MATH".to_string()); }
     if used.iter().any(|x| x.starts_with("sys_")) { r.push_str(SYS_RUNTIME); mods.push("SYSTEM".to_string()); }
-    if used.contains("net_get") || used.contains("net_serve") || used.contains("net_post") || used.contains("net_ping") || used.contains("net_download") || used.contains("net_ip") { r.push_str(NET_RUNTIME); mods.push("NETWORK".to_string()); }
+    if used.contains("net_get") || used.contains("net_serve") || used.contains("net_post") || used.contains("net_ping") || used.contains("net_download") || used.contains("net_ip") || used.contains("net_is_online") { r.push_str(NET_RUNTIME); mods.push("NETWORK".to_string()); }
     if used.iter().any(|x| x.starts_with("arr_") || x == "arr_literal" || x == "arr_index") { r.push_str(ARR_RUNTIME); mods.push("ARRAY".to_string()); }
     if used.iter().any(|x| x.starts_with("map_")) { r.push_str(MAP_RUNTIME); mods.push("MAP".to_string()); }
     if used.iter().any(|x| x.starts_with("gui_")) { r.push_str(GUI_RUNTIME); mods.push("GUI".to_string()); }
@@ -535,6 +549,63 @@ pub fn builtin_tui_read_line(x_v: Value, y_v: Value, w_v: Value) -> Value { let 
 pub fn builtin_tui_draw_button(x_v: Value, y_v: Value, w_v: Value, h_v: Value, text_v: Value) -> Value { let x = x_v.as_i64(); let y = y_v.as_i64(); let w = w_v.as_i64(); let h = h_v.as_i64(); let text = text_v.to_string(); builtin_tui_fill(x_v.clone(), y_v.clone(), w_v.clone(), h_v.clone(), Value::Str(" ".to_string())); builtin_tui_draw_box(x_v.clone(), y_v.clone(), w_v.clone(), h_v.clone()); let text_x = x + (w - text.len() as i64) / 2; let text_y = y + h / 2; print!("\x1b[{};{}H{}", text_y, text_x, text); std::io::stdout().flush().ok(); Value::None }
 pub fn builtin_tui_menu(x_v: Value, y_v: Value, w_v: Value, items_v: Value, selected_v: Value) -> Value { let x = x_v.as_i64(); let y = y_v.as_i64(); let w = w_v.as_i64(); let selected = selected_v.as_i64(); if let Value::Array(items) = items_v { let b = items.borrow(); for (i, item) in b.iter().enumerate() { if i as i64 == selected { print!("\x1b[{};{}H\x1b[7m {:<width$} \x1b[0m", y + i as i64, x, item.to_string(), width = (w as usize - 2)); } else { print!("\x1b[{};{}H  {:<width$} ", y + i as i64, x, item.to_string(), width = (w as usize - 2)); } } } std::io::stdout().flush().ok(); Value::None }
 pub fn builtin_tui_cursor_pos(x: Value, y: Value) -> Value { print!("\x1b[{};{}H", y.as_i64(), x.as_i64()); std::io::stdout().flush().ok(); Value::None }
+pub fn builtin_tui_draw_shadow(x_v: Value, y_v: Value, w_v: Value, h_v: Value) -> Value {
+    let x = x_v.as_i64(); let y = y_v.as_i64(); let w = w_v.as_i64(); let h = h_v.as_i64();
+    for i in 1..=h { print!("\x1b[{};{}H\x1b[90m░\x1b[0m", y + i, x + w); }
+    print!("\x1b[{};{}H\x1b[90m", y + h, x + 1);
+    for _ in 0..w { print!("░"); }
+    print!("\x1b[0m");
+    std::io::stdout().flush().ok(); Value::None
+}
+pub fn builtin_tui_box_custom(x_v: Value, y_v: Value, w_v: Value, h_v: Value, chars_v: Value) -> Value {
+    let x = x_v.as_i64(); let y = y_v.as_i64(); let w = w_v.as_i64(); let h = h_v.as_i64();
+    let cs = chars_v.to_string(); let chars: Vec<char> = cs.chars().collect();
+    if chars.len() < 6 { return Value::None; }
+    print!("\x1b[{};{}H{}", y, x, chars[0]); for _ in 1..(w-1) { print!("{}", chars[1]); } print!("{}", chars[2]);
+    for i in 1..(h-1) { print!("\x1b[{};{}H{}", y + i, x, chars[3]); print!("\x1b[{};{}H{}", y + i, x + w - 1, chars[4]); }
+    let last_row = if chars.len() >= 8 { (chars[5], chars[6], chars[7]) } else { ('└', '─', '┘') };
+    print!("\x1b[{};{}H{}", y + h - 1, x, last_row.0); for _ in 1..(w-1) { print!("{}", last_row.1); } print!("{}", last_row.2);
+    std::io::stdout().flush().ok(); Value::None
+}
+pub fn builtin_tui_get_cursor() -> Value { Value::Array(Rc::new(RefCell::new(vec![Value::Num(1), Value::Num(1)]))) }
+pub fn builtin_tui_draw_rect(x_v: Value, y_v: Value, w_v: Value, h_v: Value, ch_v: Value) -> Value {
+    let x = x_v.as_i64(); let y = y_v.as_i64(); let w = w_v.as_i64(); let h = h_v.as_i64();
+    let ch = ch_v.to_string().chars().next().unwrap_or(' ');
+    let line = ch.to_string().repeat(w as usize);
+    for i in 0..h { print!("\x1b[{};{}H{}", y + i, x, line); }
+    std::io::stdout().flush().ok(); Value::None
+}
+pub fn builtin_tui_draw_line(x1_v: Value, y1_v: Value, x2_v: Value, y2_v: Value, ch_v: Value) -> Value {
+    let (mut x1, mut y1) = (x1_v.as_i64(), y1_v.as_i64());
+    let (x2, y2) = (x2_v.as_i64(), y2_v.as_i64());
+    let ch = ch_v.to_string().chars().next().unwrap_or(' ');
+    let dx = (x2 - x1).abs(); let dy = -(y2 - y1).abs();
+    let sx = if x1 < x2 { 1 } else { -1 }; let sy = if y1 < y2 { 1 } else { -1 };
+    let mut err = dx + dy;
+    loop {
+        print!("\x1b[{};{}H{}", y1, x1, ch);
+        if x1 == x2 && y1 == y2 { break; }
+        let e2 = 2 * err;
+        if e2 >= dy { err += dy; x1 += sx; }
+        if e2 <= dx { err += dx; y1 += sy; }
+    }
+    std::io::stdout().flush().ok(); Value::None
+}
+pub fn builtin_tui_clear_area(x_v: Value, y_v: Value, w_v: Value, h_v: Value) -> Value {
+    builtin_tui_fill(x_v, y_v, w_v, h_v, Value::Str(" ".to_string()))
+}
+pub fn builtin_tui_draw_circle(cx_v: Value, cy_v: Value, r_v: Value, ch_v: Value) -> Value {
+    let (cx, cy, r) = (cx_v.as_i64(), cy_v.as_i64(), r_v.as_i64());
+    let ch = ch_v.to_string().chars().next().unwrap_or(' ');
+    let mut x = r; let mut y = 0; let mut err = 0;
+    while x >= y {
+        let pts = [(cx+x,cy+y), (cx+y,cy+x), (cx-y,cy+x), (cx-x,cy+y), (cx-x,cy-y), (cx-y,cy-x), (cx+y,cy-x), (cx+x,cy-y)];
+        for (px, py) in pts { print!("\x1b[{};{}H{}", py, px, ch); }
+        if err <= 0 { y += 1; err += 2*y + 1; }
+        if err > 0 { x -= 1; err -= 2*x + 1; }
+    }
+    std::io::stdout().flush().ok(); Value::None
+}
 "##;
 
 const INPUT_RUNTIME: &str = r##"
@@ -612,6 +683,15 @@ pub fn builtin_math_rad_to_deg(v: Value) -> Value { Value::Num((v.as_i64() as f6
 pub fn builtin_math_gcd(v1: Value, v2: Value) -> Value { fn gcd(a: i64, b: i64) -> i64 { if b == 0 { a } else { gcd(b, a % b) } } Value::Num(gcd(v1.as_i64(), v2.as_i64())) }
 pub fn builtin_math_lcm(v1: Value, v2: Value) -> Value { let a = v1.as_i64(); let b = v2.as_i64(); if a == 0 || b == 0 { return Value::Num(0); } fn gcd(a: i64, b: i64) -> i64 { if b == 0 { a } else { gcd(b, a % b) } } Value::Num((a * b).abs() / gcd(a, b)) }
 pub fn builtin_math_factorial(v: Value) -> Value { let n = v.as_i64(); if n < 0 { return Value::None; } let mut res = 1; for i in 1..=n { res *= i; } Value::Num(res) }
+pub fn builtin_math_clamp(v: Value, min: Value, max: Value) -> Value { Value::Num(v.as_i64().clamp(min.as_i64(), max.as_i64())) }
+pub fn builtin_math_lerp(a: Value, b: Value, t: Value) -> Value { 
+    let start = a.as_i64() as f64; let end = b.as_i64() as f64; let factor = (t.as_i64() as f64) / 100.0;
+    Value::Num((start + (end - start) * factor) as i64)
+}
+pub fn builtin_math_dist(x1: Value, y1: Value, x2: Value, y2: Value) -> Value {
+    let dx = x1.as_i64() - x2.as_i64(); let dy = y1.as_i64() - y2.as_i64();
+    Value::Num(((dx*dx + dy*dy) as f64).sqrt() as i64)
+}
 "##;
 
 const SYS_RUNTIME: &str = r##"
@@ -650,6 +730,8 @@ pub fn builtin_net_ip() -> Value { if let Ok(o) = Command::new("curl").arg("-s")
 pub fn builtin_net_interfaces() -> Value { if let Ok(o) = Command::new("ip").arg("-br").arg("addr").output() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } Value::None }
 pub fn builtin_net_uptime() -> Value { if let Ok(o) = Command::new("uptime").arg("-p").output() { return Value::Str(String::from_utf8_lossy(&o.stdout).trim().replace("up ", "")); } Value::None }
 pub fn builtin_net_resolve(host: Value) -> Value { if let Value::Str(h) = host { if let Ok(mut addrs) = (h.as_str(), 0).to_socket_addrs() { if let Some(addr) = addrs.next() { return Value::Str(addr.ip().to_string()); } } } Value::None }
+pub fn builtin_net_http_status(url: Value) -> Value { if let Value::Str(u) = url { if let Ok(o) = Command::new("curl").arg("-s").arg("-o").arg("/dev/null").arg("-w").arg("%{http_code}").arg(u).output() { if let Ok(s) = String::from_utf8_lossy(&o.stdout).parse::<i64>() { return Value::Num(s); } } } Value::Num(0) }
+pub fn builtin_net_is_online() -> Value { Value::Num(if Command::new("ping").arg("-c").arg("1").arg("-W").arg("1").arg("8.8.8.8").status().map(|s| s.success()).unwrap_or(false) { 1 } else { 0 }) }
 "##;
 
 const MAP_RUNTIME: &str = r##"
@@ -689,6 +771,7 @@ pub fn builtin_gui_scale(title: Value, text: Value, min: Value, max: Value, val:
 pub fn builtin_gui_notify(text: Value, title: Value) -> Value { if let (Value::Str(tx), Value::Str(ti)) = (text, title) { Command::new("zenity").arg("--notification").arg("--text").arg(tx).arg("--title").arg(ti).spawn().ok(); } Value::None }
 pub fn builtin_gui_file_save(title: Value) -> Value { if let Value::Str(t) = title { if let Ok(out) = Command::new("zenity").arg("--file-selection").arg("--save").arg("--confirm-overwrite").arg("--title").arg(t).output() { if out.status.success() { return Value::Str(String::from_utf8_lossy(&out.stdout).trim().to_string()); } } } Value::None }
 pub fn builtin_gui_text_info(filename: Value, title: Value) -> Value { if let (Value::Str(f), Value::Str(t)) = (filename, title) { Command::new("zenity").arg("--text-info").arg(format!("--filename={}", f)).arg("--title").arg(t).output().ok(); } Value::None }
+pub fn builtin_gui_progress(text: Value, title: Value) -> Value { if let (Value::Str(tx), Value::Str(ti)) = (text, title) { Command::new("zenity").arg("--progress").arg("--text").arg(tx).arg("--title").arg(ti).arg("--pulsate").arg("--auto-close").spawn().ok(); } Value::None }
 "##;
 
 const JSON_RUNTIME: &str = r##"
@@ -765,20 +848,19 @@ pub fn builtin_color_hex(v: Value) -> Value { if let Value::Str(s) = v { if s.st
 pub fn builtin_color_blend(c1: Value, c2: Value) -> Value { 
     fn parse_hex(s: &str) -> (i64, i64, i64) {
         let s = s.trim_start_matches('#');
+        if s.len() < 6 { return (0,0,0); }
         let r = i64::from_str_radix(&s[0..2], 16).unwrap_or(0);
         let g = i64::from_str_radix(&s[2..4], 16).unwrap_or(0);
         let b = i64::from_str_radix(&s[4..6], 16).unwrap_or(0);
         (r, g, b)
     }
     if let (Value::Str(s1), Value::Str(s2)) = (c1, c2) {
-        if s1.len() >= 6 && s2.len() >= 6 {
-            let (r1, g1, b1) = parse_hex(&s1);
-            let (r2, g2, b2) = parse_hex(&s2);
-            let r = (r1 + r2) / 2;
-            let g = (g1 + g2) / 2;
-            let b = (b1 + b2) / 2;
-            return Value::Str(format!("#{:02x}{:02x}{:02x}", r, g, b));
-        }
+        let (r1, g1, b1) = parse_hex(&s1);
+        let (r2, g2, b2) = parse_hex(&s2);
+        let r = (r1 + r2) / 2;
+        let g = (g1 + g2) / 2;
+        let b = (b1 + b2) / 2;
+        return Value::Str(format!("#{:02x}{:02x}{:02x}", r, g, b));
     }
     Value::None
 }
@@ -813,4 +895,5 @@ const LOGIC_RUNTIME: &str = r##"
 pub fn builtin_logic_and(v1: Value, v2: Value) -> Value { Value::Num(if v1.is_truthy() && v2.is_truthy() { 1 } else { 0 }) }
 pub fn builtin_logic_or(v1: Value, v2: Value) -> Value { Value::Num(if v1.is_truthy() || v2.is_truthy() { 1 } else { 0 }) }
 pub fn builtin_logic_not(v: Value) -> Value { Value::Num(if v.is_truthy() { 0 } else { 1 }) }
+pub fn builtin_logic_xor(v1: Value, v2: Value) -> Value { Value::Num(if v1.is_truthy() != v2.is_truthy() { 1 } else { 0 }) }
 "##;

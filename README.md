@@ -1,74 +1,97 @@
-# VPL Systems - Optimized Native Compiler (v1.6.0)
+# VPL Systems - Optimized Native Compiler (v1.8.0)
 
-VPL (Visual Programming Language) is a high-performance, statically compiled programming language designed for Linux (Solus) environments. It features a modern syntax, an extensive standard library, and a professional-grade compiler that produces tiny, standalone native binaries.
+VPL (Visual Programming Language) is a high-performance, statically compiled programming language designed for Linux environments. It features a modern syntax, an extensive standard library, and a professional-grade compiler that produces tiny, standalone native binaries.
 
 ## 🚀 Key Features
 
-- **Blazing Fast Native Code**: Compiles through Rust/LLVM with `opt-level=3` by default.
-- **Smart Tree-Shaking (DCE)**: Only includes used runtime modules (Core, GUI, Network, etc.) in the final binary to keep file sizes minimal.
-- **Dual Graphics Engine**:
-  - **TUI**: Advanced terminal interfaces using ANSI escape sequences (windows, buttons, menus).
-  - **GUI**: Modern system dialogs (calendars, sliders, lists, color pickers, notifications) via Zenity integration.
-- **Industrial Compiler Logger**: Animated, threaded, and detailed build logs with microsecond-precision diagnostics.
-- **Cross-Platform Readiness**: Native support for building Windows `.exe` files from Linux using the `-w` flag.
-- **Rich Standard Library**: Built-in support for JSON, Filesystem, Advanced Networking (HTTP/TCP/IP), Logic/Bitwise operations, and specialized Math (GCD, LCM, Trig).
-- **Color Tools**: Built-in functions for RGB/HEX manipulation and color blending.
+- **Industrial Build Pipeline:** Animated progress logs with microsecond precision.
+- **Advanced TUI Engine:** Create professional terminal interfaces with shadows, windows, and custom boxes.
+- **Modern GUI Library:** Native desktop dialogs via built-in Zenity wrappers.
+- **Tree-Shaking Optimizer:** Final binaries only include the modules you actually use.
+- **Cross-Platform Building:** Easily compile Linux binaries or Windows `.exe` files.
+- **Scientific Math & Logic:** Full suite of trigonometric, scientific, and bitwise functions.
+- **Pro Diagnostics:** Real-time system monitoring (CPU cores, RAM usage, Uptime).
 
-## 🛠 Prerequisites
+## 📥 Installation
 
-To use the VPL compiler, your system needs:
+VPL requires the **Rust compiler** and **Curl** to be installed on your system.
 
-1. **Rust Toolchain**: `rustc` is required as the primary backend for LLVM linking.
-   - *Solus Linux:* `sudo eopkg install rust`
-2. **Zenity**: Required for rendering GUI dialogs.
-   - *Solus Linux:* `sudo eopkg install zenity`
-3. **Mingw-w64 (Optional)**: Required only if you intend to cross-compile for Windows.
-   - *Solus Linux:* `sudo eopkg install mingw-w64`
+### 1. Install Dependencies
 
-## 📂 Project Structure
+Depending on your Linux distribution, run:
 
-- `/vpl` - The main compiler binary.
-- `/src` - Rust source code for the Lexer, Parser, and Compiler.
-- `/examples` - A rich suite of demo scripts (.vpl).
-- `lang.txt` - Complete language specification and function reference.
-
-## 💻 Usage
-
-### Interactive Selector (Build & Run)
-Launch the TUI file explorer to browse, build, and run your scripts visually:
+**Debian / Ubuntu / Mint / Pop!_OS:**
 ```bash
-./vpl tui
+sudo apt update && sudo apt install rustc curl zenity
 ```
 
-### Manual Build
+**Fedora / Red Hat / CentOS:**
 ```bash
-# Basic build (produces a native binary)
-./vpl build examples/hello.vpl
-
-# Build with custom output name
-./vpl build examples/game.vpl -o my_game
-
-# Cross-compile for Windows (.exe)
-./vpl build examples/gui_demo.vpl -o windows_app -w
+sudo dnf install rust curl zenity
 ```
+
+**Arch Linux / Manjaro:**
+```bash
+sudo pacman -S rust curl zenity
+```
+
+**Solus Linux:**
+```bash
+sudo eopkg install rust curl zenity
+```
+
+### 2. Get VPL
+Clone this repository or download the binary, then move it to your path:
+```bash
+chmod +x vpl
+sudo mv vpl /usr/local/bin/
+```
+
+## 🛠️ Usage
+
+### Quick Run (JIT-like)
+Execute any `.vpl` file immediately without keeping the binary:
+```bash
+vpl run examples/hello.vpl
+```
+
+### Build Native Binary
+```bash
+vpl build program.vpl -o my_app
+```
+
+### Build for Windows
+```bash
+vpl build program.vpl -w
+```
+
+### Interactive Selector (TUI)
+Launch the professional file selector and builder:
+```bash
+vpl tui
+```
+*Inside TUI, use **W** to toggle Windows mode, **R** for Release, **S** for Strip, and **V** for Verbose logging.*
 
 ## 📝 Syntax at a Glance
 
 ```vpl
-// Example: Modern VPL Script v1.6.0
+// Example: Modern VPL Script v1.8.0
 func diagnose() {
     set ip = net_ip()
     set host = net_hostname()
     say "Host: " + host + " (IP: " + ip + ")"
-}
-
-set ping_time = net_ping_ms("8.8.8.8")
-if logic_and(ping_time > 0, ping_time < 100) {
-    gui_notify("Network is fast!", "VPL Status")
+    
+    set cores = sys_cores()
+    say "Processing on " + cores + " CPU cores."
 }
 
 diagnose()
+
+set items = ["Apple", "Orange", "Banana"]
+for fruit in items {
+    say "I like " + fruit
+}
 ```
 
-## ⚖️ License
-VPL is an industrial-grade tool provided as-is for high-efficiency systems development.
+## 📜 Full Documentation
+See [lang.txt](lang.txt) for a complete list of all built-in functions and their usage.

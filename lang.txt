@@ -1,4 +1,4 @@
-VPL Language Specification & Manual (v1.6.0)
+VPL Language Specification & Manual (v1.8.0)
 ===========================================
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language for Linux.
@@ -24,30 +24,24 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 
 3. BUILT-IN FUNCTIONS
 ---------------------
-[TUI Engine]
+[TUI Engine (Advanced Design)]
 - tui_init(), tui_restore(), tui_clear(), tui_beep()
 - tui_width(), tui_height(), tui_set_title(text)
-- tui_print(x, y, text), tui_cursor_pos(x, y)
-- tui_draw_box(x, y, w, h), tui_draw_window(x, y, w, h, title)
+- tui_print(x, y, text), tui_cursor_pos(x, y), tui_get_cursor()
+- tui_draw_box(x, y, w, h), tui_box_custom(x, y, w, h, chars)
+- tui_draw_window(x, y, w, h, title), tui_draw_shadow(x, y, w, h)
+- tui_draw_rect(x, y, w, h, char), tui_draw_line(x1, y1, x2, y2, char)
+- tui_draw_circle(cx, cy, r, char), tui_clear_area(x, y, w, h)
 - tui_draw_button(x, y, w, h, text), tui_menu(x, y, w, items, sel)
 - tui_read_key(), tui_read_line(x, y, w)
 - tui_bold(1/0), tui_underline(1/0)
 
-[GUI Engine (System Dialogs)]
-- gui_msg(text, title)     : Info dialog
-- gui_error(text, title)   : Error dialog
-- gui_warning(text, title) : Warning dialog
-- gui_question(text, title): Yes/No dialog (returns 1 or 0)
-- gui_input(text, title)   : Text input dialog
-- gui_password(title)      : Password input dialog
-- gui_file(title)          : File selection
-- gui_file_save(title)     : Save file selection
-- gui_calendar(title)      : Date selection
-- gui_color(title)         : Color picker
-- gui_list(title, col, arr): Select from a list of items
-- gui_scale(title, text, min, max, val, step): Number slider
-- gui_notify(text, title)  : Passive notification
-- gui_text_info(file, title): Display text from a file
+[GUI Engine (Modern Desktop)]
+- gui_msg(text, title), gui_error(text, title), gui_warning(text, title)
+- gui_question(text, title), gui_input(text, title), gui_password(title)
+- gui_file(title), gui_file_save(title), gui_calendar(title), gui_color(title)
+- gui_list(title, column, array), gui_scale(title, text, min, max, val, step)
+- gui_notify(text, title), gui_text_info(file, title), gui_progress(text, title)
 
 [File System]
 - fs_list(path), fs_read(path), fs_write(path, str), fs_append(path, str)
@@ -70,29 +64,30 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 - arr_contains(a, v), arr_reverse(a), arr_sort(a), arr_slice(a, start, end)
 - arr_find(a, v)
 
-[System & Math]
+[System & Hardware]
 - sys_exec(cmd), sys_shell(cmd), sys_env(name), sys_args(), sys_env_set(n, v)
 - sys_hostname(), sys_username(), sys_user_home(), sys_os(), sys_pid()
 - sys_arch(), sys_cores(), sys_mem_total(), sys_mem_free()
 - sys_time(), sys_time_ms(), sys_exit(code), sys_sleep(ms), sys_wait(ms)
+
+[Math & Logic]
 - math_rand(min, max), math_pow(b, e), math_sqrt(n), math_abs(n)
 - math_log(n), math_log10(n), math_sin(n), math_cos(n), math_tan(n)
 - math_asin(n), math_acos(n), math_atan(n), math_floor(n), math_ceil(n)
 - math_round(n), math_cbrt(n), math_pi(), math_e(), math_tau()
 - math_hypot(a, b), math_exp(n), math_deg_to_rad(n), math_rad_to_deg(n)
 - math_gcd(a, b), math_lcm(a, b), math_factorial(n)
+- math_clamp(v, min, max), math_lerp(a, b, t), math_dist(x1, y1, x2, y2)
+- logic_and(a, b), logic_or(a, b), logic_not(a), logic_xor(a, b)
 
 [Networking]
 - net_get(url), net_post(url, body), net_download(url, path), net_ping(host)
 - net_ping_ms(host), net_serve(port), net_ip(), net_interfaces(), net_uptime()
-- net_hostname()
+- net_resolve(host), net_http_status(url), net_is_online()
 
-[Logic & Colors]
-- logic_and(a, b), logic_or(a, b), logic_not(a)
-- bit_and(a, b), bit_or(a, b), bit_xor(a, b), bit_not(a)
-- bit_shl(a, b), bit_shr(a, b)
+[Color Tools]
 - color_rgb(r, g, b), color_hex(str), color_blend(c1, c2)
-- color_to_rgb(hex), color_to_hex(rgb)
+- color_to_rgb(hex), color_to_hex(rgb_array)
 
 4. COMPILER USAGE
 -----------------

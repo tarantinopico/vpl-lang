@@ -1,0 +1,15 @@
+// VPL Unit Testing Framework
+func test_assert(name, condition) {
+    if condition == 1 {
+        say "[ PASS ] " + name
+        return 1
+    } else {
+        say "[ FAIL ] " + name
+        return 0
+    }
+}
+
+func test_summary(passed, total) {
+    say "------------------------"
+    say "Results: " + passed + " / " + total + " tests passed."
+}

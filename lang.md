@@ -1,44 +1,30 @@
-# 📘 VPL Language Specification (v2.1.0)
+# 📘 VPL Language Specification (v2.2.0)
 
-VPL (Visual Programming Language) is a high-performance, statically compiled language for Linux, compiling directly to native machine code via **LLVM**.
+VPL (Visual Programming Language) is a high-performance language with a rich **Standard Library**.
 
 ## 🏗️ 1. Basic Syntax
-| Feature | Syntax | Example |
-| :--- | :--- | :--- |
-| **Variables** | `set name = value` | `set x = 10` |
-| **Output** | `say expr` | `say "Hello " + x` |
-| **Functions** | `func name(a, b) { ... }` | `func add(x, y) { return x + y }` |
-| **Conditionals** | `if cond { ... } else { ... }` | `if x > 5 { say "Big" }` |
-| **Loops** | `while cond { ... }` | `while i < 10 { set i = i + 1 }` |
-| **For Loop** | `for item in array { ... }` | `for x in [1,2] { say x }` |
+| Feature | Example |
+| :--- | :--- |
+| **Variables** | `set x = 10` |
+| **Dictionaries** | `set m = map_new()` |
+| **Functions** | `func name(a) { ... }` |
 
-## 📦 2. Library System
-VPL includes an **Intelligent Auto-Include** system.
-- Store `.vplib` files in `./.vplib/` or `~/.vpl/lib/`.
-- Calling a function like `gui_window()` automatically links the providing library.
+## 📦 2. Standard Library Highlights
+### [Data & Storage]
+- `db_load(file)`, `db_save(file, data)`: Simple JSON DB.
+- `map_copy(m)`, `arr_copy(a)`: Memory management.
 
-## 🛠️ 3. Core Functions
-### [TUI Engine]
-- `tui_init()`, `tui_clear()`, `tui_print(x, y, text)`
-- `tui_draw_box(x, y, w, h)`, `tui_read_key()`
-- `tui_progress_bar(x, y, w, %, label)` *(via tui_widgets.vplib)*
+### [Graphics & UI]
+- `gui_window()`, `gui_button()`, `gui_input_draw()`
+- `gui_sprite_draw(x, y, scale, data)`: Pixel art engine.
+- `gui_grid_x()`, `gui_grid_y()`: Layout managers.
 
-### [Native GUI]
-- `gfx_open(w, h, title)`, `gfx_close()`, `gfx_clear(color)`
-- `gfx_rect(x, y, w, h, color)`, `gfx_text(x, y, text, color)`
-- `gfx_poll()`: Returns a Map `{ "type": "click/key", "x": n, "y": n, "key": "s" }`
+### [System & Tasks]
+- `task_new_timer(ms)`: Non-blocking timers.
+- `sys_clipboard_set(text)`: OS Clipboard access.
 
-### [Security & Crypto]
-- `crypto_xor_encrypt(data, key)`: Symmetric encryption.
-- `crypto_simple_hash(data)`: Fast string hashing.
+### [Testing]
+- `test_assert(name, condition)`: Built-in testing.
 
-### [File System]
-- `fs_read(path)`, `fs_write(path, content)`, `fs_list(dir)`
-- `fs_exists(path)`, `fs_is_dir(path)`, `fs_delete(path)`
-
-## 🚀 4. Compiler Commands
-```bash
-./vpl run app.vpl          # Quick execution
-./vpl build app.vpl -o my  # Build standalone binary
-./vpl build app.vpl -silent # Production silent build
-```
+## 🚀 3. Compiler usage
+`./vpl build app.vpl`

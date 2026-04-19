@@ -1,0 +1,25 @@
+// VPL Sprite & Pixel Engine
+func gui_sprite_draw(x, y, scale, pixel_data) {
+    set rows = arr_len(pixel_data)
+    set r = 0
+    while r < rows {
+        set row_str = pixel_data[r]
+        set cols = str_len(row_str)
+        set c = 0
+        while c < cols {
+            set pixel = str_at(row_str, c)
+            if pixel != " " {
+                set color = "#ffffff"
+                if pixel == "R" { set color = "#e74c3c" }
+                if pixel == "G" { set color = "#2ecc71" }
+                if pixel == "B" { set color = "#3498db" }
+                if pixel == "Y" { set color = "#f1c40f" }
+                if pixel == "X" { set color = "#000000" }
+                
+                gfx_rect(x + (c * scale), y + (r * scale), scale, scale, color)
+            }
+            set c = c + 1
+        }
+        set r = r + 1
+    }
+}

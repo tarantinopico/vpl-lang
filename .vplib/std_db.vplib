@@ -1,0 +1,19 @@
+// VPL Standard Database Library
+func db_save(filename, data_map) {
+    set json = json_stringify(data_map)
+    return fs_write(filename, json)
+}
+
+func db_load(filename) {
+    if fs_exists(filename) == 0 { return map_new() }
+    set json = fs_read(filename)
+    return json_parse(json)
+}
+
+func db_insert(db, key, val) {
+    map_set(db, key, val)
+}
+
+func db_query(db, key) {
+    return map_get(db, key)
+}

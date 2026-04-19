@@ -1,0 +1,56 @@
+func main() {
+    gui_window(800, 600, "VPL Ultimate Demo v2.2.0")
+    
+    set db_file = "user_data.json"
+    set db = db_load(db_file)
+    
+    // Set some initial data if empty
+    if map_has(db, "visits") == 0 {
+        db_insert(db, "visits", 0)
+    }
+    
+    set visits = db_query(db, "visits") + 1
+    db_insert(db, "visits", visits)
+    db_save(db_file, db)
+    
+    set running = 1
+    set timer = task_new_timer(100) // 10fps logic
+    set ship_x = 350
+    
+    // Pixel Art Data for a small ship
+    set ship_sprite = [
+        "  G  ",
+        " GGG ",
+        "BGGGB",
+        " R R "
+    ]
+
+    while running == 1 {
+        gui_clear_screen("#000000") // Space
+        
+        gui_label(20, 20, "DATABASE STATUS: " + visits + " sessions recorded.", "#f1c40f")
+        gui_label(20, 50, "PRESS A/D TO MOVE SHIP, ESC TO QUIT", "#ffffff")
+        
+        // Draw Sprite
+        gui_sprite_draw(ship_x, 300, 10, ship_sprite)
+        
+        set ev = gfx_poll()
+        if ev != "none" {
+            if ev["type"] == "key" {
+                set key = ev["key"]
+                if key == "a" { set ship_x = ship_x - 20 }
+                if key == "d" { set ship_x = ship_x + 20 }
+                if ev["code"] == 9 { set running = 0 } // Esc
+            }
+        }
+        
+        if task_timer_ready(timer) == 1 {
+            // Background animation or logic here
+        }
+        
+        sys_sleep(10)
+    }
+    
+    gui_close()
+    say "Demo finished. Data was saved to " + db_file
+}

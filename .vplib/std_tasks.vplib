@@ -1,0 +1,17 @@
+// VPL Task & Timer Manager
+func task_new_timer(interval_ms) {
+    set timer = map_new()
+    map_set(timer, "last", sys_time_ms())
+    map_set(timer, "interval", interval_ms)
+    return timer
+}
+
+func task_timer_ready(timer) {
+    set now = sys_time_ms()
+    set last = map_get(timer, "last")
+    if now - last >= map_get(timer, "interval") {
+        map_set(timer, "last", now)
+        return 1
+    }
+    return 0
+}

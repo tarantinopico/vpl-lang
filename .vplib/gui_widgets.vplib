@@ -2,16 +2,22 @@ func gui_label(x, y, text, color) {
     gfx_text(x, y, text, color)
 }
 
+func gui_panel(x, y, w, h, color) {
+    gfx_rect(x, y, w, h, color)
+}
+
 func gui_button(x, y, w, h, text, bg_color, is_hover) {
     set final_bg = bg_color
     if is_hover == 1 {
-        set final_bg = "#3498db" // Highlight color
+        set final_bg = "#505050"
     }
-    gfx_rect(x + 2, y + 2, w, h, "#000000")
+    
     gfx_rect(x, y, w, h, final_bg)
-    gfx_rect(x, y, w, 2, "#ffffff")
-    gfx_rect(x, y, 2, h, "#ffffff")
-    set text_x = x + 15
-    set text_y = y + (h / 2) + 5
-    gfx_text(text_x, text_y, text, "#ffffff")
+    // Small border
+    gfx_rect(x, y, w, 1, "#ffffff")
+    
+    set tw = gfx_text_width(text)
+    set tx = x + (w - tw) / 2
+    set ty = y + (h / 2) + 5
+    gfx_text(tx, ty, text, "#ffffff")
 }

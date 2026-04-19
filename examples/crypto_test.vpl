@@ -1,0 +1,22 @@
+func main() {
+    set secret = "TopSecretMessage123"
+    set key = "SafeKey"
+    
+    say "VPL CRYPTO TEST v2.1.0"
+    say "Original: " + secret
+    
+    set encrypted = crypto_xor_encrypt(secret, key)
+    say "Encrypted: " + encrypted
+    
+    set decrypted = crypto_xor_encrypt(encrypted, key)
+    say "Decrypted: " + decrypted
+    
+    set hash = crypto_simple_hash(secret)
+    say "Data Hash: " + hash
+    
+    if secret == decrypted {
+        say "Crypto Verification: SUCCESS"
+    } else {
+        say "Crypto Verification: FAILED"
+    }
+}

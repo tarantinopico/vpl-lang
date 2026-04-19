@@ -1,0 +1,29 @@
+// VPL Professional TUI Widgets
+func tui_progress_bar(x, y, w, percent, label) {
+    tui_print(x, y, label)
+    set inner_w = w - 2
+    set filled = inner_w * percent / 100
+    
+    tui_print(x, y + 1, "[")
+    tui_print(x + w - 1, y + 1, "]")
+    
+    set i = 0
+    while i < inner_w {
+        if i < filled {
+            tui_print(x + 1 + i, y + 1, "=")
+        } else {
+            tui_print(x + 1 + i, y + 1, ".")
+        }
+        set i = i + 1
+    }
+    tui_print(x + w + 1, y + 1, percent + "%")
+}
+
+func tui_status_line(text) {
+    set h = tui_height()
+    set w = tui_width()
+    tui_set_color(0, 7) // Black on white
+    tui_fill(1, h, w, 1, " ")
+    tui_print(2, h, " STATUS: " + text)
+    tui_reset_color()
+}

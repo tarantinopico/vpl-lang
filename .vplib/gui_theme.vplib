@@ -1,0 +1,9 @@
+// Modern Dark Theme for VPL
+func theme_bg() { return "#1e1e1e" }
+func theme_surface() { return "#2d2d2d" }
+func theme_primary() { return "#0078d4" }
+func theme_text() { return "#ffffff" }
+func theme_text_dim() { return "#cccccc" }
+func theme_accent() { return "#3a3a3a" }
+func theme_danger() { return "#e81123" }
+func theme_success() { return "#107c10" }

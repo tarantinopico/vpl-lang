@@ -1,0 +1,83 @@
+func main() {
+    gui_window(800, 500, "VPL Modern File Manager")
+    
+    set running = 1
+    set current_path = sys_user_home()
+    set files = fs_list(current_path)
+    set selected_file = -1
+    set status = "Ready."
+
+    while running == 1 {
+        // Clear background
+        gui_clear_screen(theme_bg())
+        
+        // Sidebar panel
+        gui_panel(0, 0, 200, 500, theme_accent())
+        gui_label(20, 40, "FAVORITES", "#888888")
+        gui_label(20, 80, "Home", theme_text())
+        gui_label(20, 110, "Documents", theme_text())
+        gui_label(20, 140, "Projects", theme_text())
+        
+        // Main view header
+        gui_panel(200, 0, 600, 60, theme_surface())
+        gui_label(220, 35, "Path: " + current_path, theme_text())
+        
+        // File list (ListBox)
+        gui_listbox_draw(210, 70, 580, 380, files, selected_file)
+        
+        // Footer / Toolbar
+        gui_panel(200, 450, 600, 50, theme_accent())
+        gui_button(220, 460, 100, 30, "Open", theme_primary(), 0)
+        gui_button(330, 460, 100, 30, "Delete", theme_danger(), 0)
+        gui_label(450, 480, "Selected: " + status, theme_text_dim())
+
+        set ev = gfx_poll()
+        if ev != "none" {
+            if ev["type"] == "click" {
+                set mx = ev["x"]
+                set my = ev["y"]
+                
+                // Handle list selection
+                set clicked_idx = gui_listbox_get_index(mx, my, 210, 70, 580, 380, files)
+                if clicked_idx != -1 {
+                    set selected_file = clicked_idx
+                    set status = files[selected_file]
+                }
+                
+                // Sidebar Home click (simplified)
+                if gui_is_inside(mx, my, 20, 70, 100, 20) {
+                    set current_path = sys_user_home()
+                    set files = fs_list(current_path)
+                    set selected_file = -1
+                }
+                
+                // Handle Open Button
+                if gui_is_inside(mx, my, 220, 460, 100, 30) {
+                    if selected_file != -1 {
+                        set name = files[selected_file]
+                        set new_path = current_path + "/" + name
+                        if fs_is_dir(new_path) == 1 {
+                            set current_path = new_path
+                            set files = fs_list(current_path)
+                            set selected_file = -1
+                            set status = "Opened folder."
+                        } else {
+                            set status = "Cannot open file yet."
+                        }
+                    }
+                }
+                
+                // Quit? (Just for demo let's add a way to close)
+                if mx > 780 { if my < 20 { set running = 0 } }
+            }
+            
+            if ev["type"] == "key" {
+                if ev["code"] == 9 { set running = 0 } // Esc
+            }
+        }
+        
+        sys_sleep(10)
+    }
+    
+    gui_close()
+}

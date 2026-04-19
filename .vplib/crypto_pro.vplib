@@ -1,0 +1,29 @@
+// VPL Professional Crypto Library
+// Advanced XOR-based encryption and basic hashing
+
+func crypto_xor_encrypt(data, key) {
+    set result = ""
+    set data_len = str_len(data)
+    set key_len = str_len(key)
+    set i = 0
+    while i < data_len {
+        set char_code = str_char_code(data, i)
+        set key_code = str_char_code(key, i - (i / key_len * key_len))
+        set encrypted = bit_xor(char_code, key_code)
+        set result = result + str_from_char_code(encrypted)
+        set i = i + 1
+    }
+    return result
+}
+
+func crypto_simple_hash(data) {
+    set hash = 5381
+    set i = 0
+    set len = str_len(data)
+    while i < len {
+        set c = str_char_code(data, i)
+        set hash = (hash * 33) + c
+        set i = i + 1
+    }
+    return hash
+}

@@ -1,0 +1,9 @@
+// VPL GUI Layout Manager
+func gui_grid_x(col, total_cols, total_width, margin) {
+    set col_w = total_width / total_cols
+    return (col * col_w) + margin
+}
+
+func gui_grid_y(row, row_height, margin) {
+    return (row * row_height) + margin
+}

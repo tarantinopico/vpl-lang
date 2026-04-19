@@ -1,0 +1,43 @@
+// GUI ListBox Component
+func gui_listbox_draw(x, y, w, h, items, selected_idx) {
+    // Background
+    gfx_rect(x, y, w, h, theme_surface())
+    gfx_rect(x, y, w, 1, "#444444") // Top border
+    
+    set item_h = 30
+    set count = arr_len(items)
+    set i = 0
+    
+    while i < count {
+        set item_y = y + (i * item_h)
+        if item_y + item_h <= y + h {
+            // Selection highlight
+            if i == selected_idx {
+                gfx_rect(x, item_y, w, item_h, theme_primary())
+            }
+            
+            set text = items[i]
+            // Draw Icon (Folder/File simplified)
+            if str_starts_with(text, "/") {
+                gfx_rect(x + 5, item_y + 8, 15, 12, "#f1c40f") // Folder icon
+            } else {
+                gfx_rect(x + 8, item_y + 6, 10, 16, "#ecf0f1") // File icon
+            }
+            
+            gfx_text(x + 30, item_y + 20, text, theme_text())
+        }
+        set i = i + 1
+    }
+}
+
+// Helper to find which item was clicked
+func gui_listbox_get_index(mx, my, x, y, w, h, items) {
+    if gui_is_inside(mx, my, x, y, w, h) {
+        set item_h = 30
+        set idx = (my - y) / item_h
+        if idx < arr_len(items) {
+            return idx
+        }
+    }
+    return -1
+}

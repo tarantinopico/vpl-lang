@@ -1,30 +1,52 @@
 #![allow(warnings)]
 use crate::parser::{Stmt, Expr};
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 pub fn compile(stmts: &[Stmt]) -> (String, Vec<String>) {
     let mut code = String::new();
     let mut used_builtins = HashSet::new();
     
-    analyze_usage(stmts, &mut used_builtins);
+    // First, collect all functions
+    let mut all_functions = HashMap::new();
+    let mut main_stmts = Vec::new();
+    
+    for stmt in stmts {
+        if let Stmt::Func(name, params, body) = stmt {
+            all_functions.insert(name.clone(), (params.clone(), body.clone()));
+        } else {
+            main_stmts.push(stmt.clone());
+        }
+    }
+
+    // Determine which user functions are actually used
+    let mut used_user_functions = HashSet::new();
+    let mut to_analyze = Vec::new();
+    
+    if all_functions.contains_key("main") {
+        to_analyze.push("main".to_string());
+    }
+
+    // Analyze main statements
+    analyze_usage(&main_stmts, &mut used_builtins);
+    collect_called_functions(&main_stmts, &mut to_analyze);
+    
+    while let Some(func_name) = to_analyze.pop() {
+        if !used_user_functions.contains(&func_name) {
+            if let Some((_, body)) = all_functions.get(&func_name) {
+                used_user_functions.insert(func_name.clone());
+                analyze_usage(body, &mut used_builtins);
+                collect_called_functions(body, &mut to_analyze);
+            }
+        }
+    }
 
     code.push_str("#![allow(warnings)]\n");
     let (runtime_code, modules) = generate_runtime(&used_builtins);
     code.push_str(runtime_code.as_str());
 
-    let mut main_stmts = Vec::new();
-    let mut functions = Vec::new();
-
-    for stmt in stmts {
-        if let Stmt::Func(..) = stmt { functions.push(stmt.clone()); }
-        else { main_stmts.push(stmt.clone()); }
-    }
-
-    let mut has_vpl_main = false;
-    for func in &functions {
-        if let Stmt::Func(name, ..) = func {
-            if name == "main" { has_vpl_main = true; }
-        }
+    let has_vpl_main = used_user_functions.contains("main") || all_functions.contains_key("main");
+    if has_vpl_main && !used_user_functions.contains("main") {
+        used_user_functions.insert("main".to_string());
     }
 
     code.push_str("fn main() {\n    vpl_main();\n}\n\n");
@@ -34,20 +56,53 @@ pub fn compile(stmts: &[Stmt]) -> (String, Vec<String>) {
     else { code.push_str("    Value::None\n"); }
     code.push_str("}\n\n");
 
-    for func in functions {
-        if let Stmt::Func(name, params, body) = func {
-            code.push_str(&format!("fn vpl_fn_{}(", name));
+    for func_name in used_user_functions {
+        if let Some((params, body)) = all_functions.get(&func_name) {
+            code.push_str(&format!("fn vpl_fn_{}(", func_name));
             for (i, p) in params.iter().enumerate() {
                 if i > 0 { code.push_str(", "); }
                 code.push_str(&format!("mut v_{}: Value", p));
             }
             code.push_str(") -> Value {\n");
             let param_set: HashSet<_> = params.iter().cloned().collect();
-            compile_scope_with_params(&body, &mut code, param_set);
+            compile_scope_with_params(body, &mut code, param_set);
             code.push_str("    Value::None\n}\n\n");
         }
     }
     (code, modules)
+}
+
+fn collect_called_functions(stmts: &[Stmt], called: &mut Vec<String>) {
+    for stmt in stmts {
+        match stmt {
+            Stmt::Set(_, expr) => collect_expr_calls(expr, called),
+            Stmt::SetIndex(e1, e2, e3) => { collect_expr_calls(e1, called); collect_expr_calls(e2, called); collect_expr_calls(e3, called); }
+            Stmt::Say(expr) => collect_expr_calls(expr, called),
+            Stmt::Expr(expr) => collect_expr_calls(expr, called),
+            Stmt::If(cond, then_b, else_b) => {
+                collect_expr_calls(cond, called);
+                collect_called_functions(then_b, called);
+                if let Some(eb) = else_b { collect_called_functions(eb, called); }
+            }
+            Stmt::While(cond, body) => { collect_expr_calls(cond, called); collect_called_functions(body, called); }
+            Stmt::For(_, expr, body) => { collect_expr_calls(expr, called); collect_called_functions(body, called); }
+            Stmt::Return(expr_opt) => { if let Some(e) = expr_opt { collect_expr_calls(e, called); } }
+            _ => {}
+        }
+    }
+}
+
+fn collect_expr_calls(expr: &Expr, called: &mut Vec<String>) {
+    match expr {
+        Expr::Binary(l, _, r) => { collect_expr_calls(l, called); collect_expr_calls(r, called); }
+        Expr::Call(name, args) => {
+            called.push(name.clone());
+            for a in args { collect_expr_calls(a, called); }
+        }
+        Expr::Array(items) => { for i in items { collect_expr_calls(i, called); } }
+        Expr::Index(a, i) => { collect_expr_calls(a, called); collect_expr_calls(i, called); }
+        _ => {}
+    }
 }
 
 fn analyze_usage(stmts: &[Stmt], used: &mut HashSet<String>) {
@@ -64,8 +119,8 @@ fn analyze_usage(stmts: &[Stmt], used: &mut HashSet<String>) {
             }
             Stmt::While(cond, body) => { analyze_expr(cond, used); analyze_usage(body, used); }
             Stmt::For(_, expr, body) => { analyze_expr(expr, used); analyze_usage(body, used); }
-            Stmt::Func(_, _, body) => analyze_usage(body, used),
             Stmt::Return(expr_opt) => { if let Some(e) = expr_opt { analyze_expr(e, used); } }
+            _ => {}
         }
     }
 }
@@ -423,6 +478,16 @@ fn compile_expr(expr: &Expr) -> String {
                 "color_to_rgb" => format!("builtin_color_to_rgb({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "color_to_hex" => format!("builtin_color_to_hex({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
 
+                // Native Graphics (X11)
+                "gfx_open" => format!("builtin_gfx_open({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "gfx_close" => "builtin_gfx_close()".to_string(),
+                "gfx_clear" => format!("builtin_gfx_clear({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "gfx_rect" => format!("builtin_gfx_rect({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
+                "gfx_line" => format!("builtin_gfx_line({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
+                "gfx_text" => format!("builtin_gfx_text({}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string())),
+                "gfx_poll" => "builtin_gfx_poll()".to_string(),
+                "gfx_pixel" => format!("builtin_gfx_pixel({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+
                 _ => format!("vpl_fn_{}({})", name, arg_strs.join(", "))
             }
         }
@@ -452,11 +517,151 @@ fn generate_runtime(used: &HashSet<String>) -> (String, Vec<String>) {
     if used.iter().any(|x| x.starts_with("bit_")) { r.push_str(BIT_RUNTIME); mods.push("LOGIC/BITWISE".to_string()); }
     if used.iter().any(|x| x.starts_with("color_")) { r.push_str(COLOR_RUNTIME); mods.push("COLOR".to_string()); }
     if used.iter().any(|x| x.starts_with("logic_")) { r.push_str(LOGIC_RUNTIME); mods.push("LOGIC".to_string()); }
+    if used.iter().any(|x| x.starts_with("gfx_")) { r.push_str(GFX_RUNTIME); mods.push("NATIVE_GFX".to_string()); }
     
     (r, mods)
 }
 
+const GFX_RUNTIME: &str = r##"
+use std::ffi::CString;
+use std::ptr;
+
+#[link(name = "X11")]
+extern "C" {
+    fn XOpenDisplay(d: *const i8) -> *mut std::ffi::c_void;
+    fn XCreateSimpleWindow(d: *mut std::ffi::c_void, root: u64, x: i32, y: i32, w: u32, h: u32, border: u32, brd_px: u64, bg_px: u64) -> u64;
+    fn XSelectInput(d: *mut std::ffi::c_void, w: u64, mask: i64) -> i32;
+    fn XMapWindow(d: *mut std::ffi::c_void, w: u64) -> i32;
+    fn XCreateGC(d: *mut std::ffi::c_void, w: u64, mask: u64, val: *const std::ffi::c_void) -> *mut std::ffi::c_void;
+    fn XSetForeground(d: *mut std::ffi::c_void, gc: *mut std::ffi::c_void, color: u64) -> i32;
+    fn XFillRectangle(d: *mut std::ffi::c_void, w: u64, gc: *mut std::ffi::c_void, x: i32, y: i32, width: u32, height: u32) -> i32;
+    fn XDrawLine(d: *mut std::ffi::c_void, w: u64, gc: *mut std::ffi::c_void, x1: i32, y1: i32, x2: i32, y2: i32) -> i32;
+    fn XDrawString(d: *mut std::ffi::c_void, w: u64, gc: *mut std::ffi::c_void, x: i32, y: i32, s: *const i8, len: i32) -> i32;
+    fn XDefaultRootWindow(d: *mut std::ffi::c_void) -> u64;
+    fn XFlush(d: *mut std::ffi::c_void) -> i32;
+    fn XPending(d: *mut std::ffi::c_void) -> i32;
+    fn XNextEvent(d: *mut std::ffi::c_void, ev: *mut [u8; 192]) -> i32;
+    fn XCloseDisplay(d: *mut std::ffi::c_void) -> i32;
+}
+
+static mut GFX_DISPLAY: *mut std::ffi::c_void = ptr::null_mut();
+static mut GFX_WINDOW: u64 = 0;
+static mut GFX_GC: *mut std::ffi::c_void = ptr::null_mut();
+
+pub fn builtin_gfx_open(w_v: Value, h_v: Value, title_v: Value) -> Value {
+    unsafe {
+        GFX_DISPLAY = XOpenDisplay(ptr::null());
+        if GFX_DISPLAY.is_null() { return Value::Num(0); }
+        let root = XDefaultRootWindow(GFX_DISPLAY);
+        GFX_WINDOW = XCreateSimpleWindow(GFX_DISPLAY, root, 0, 0, w_v.as_i64() as u32, h_v.as_i64() as u32, 1, 0, 0);
+        XSelectInput(GFX_DISPLAY, GFX_WINDOW, 1 | 4 | 32768); // Exposure | ButtonPress | KeyPress
+        XMapWindow(GFX_DISPLAY, GFX_WINDOW);
+        GFX_GC = XCreateGC(GFX_DISPLAY, GFX_WINDOW, 0, ptr::null());
+        XFlush(GFX_DISPLAY);
+    }
+    Value::Num(1)
+}
+
+fn parse_color(c_v: Value) -> u64 {
+    if let Value::Str(ref s) = c_v {
+        let s = s.trim_start_matches('#');
+        if s.len() >= 6 {
+            let r = u64::from_str_radix(&s[0..2], 16).unwrap_or(0);
+            let g = u64::from_str_radix(&s[2..4], 16).unwrap_or(0);
+            let b = u64::from_str_radix(&s[4..6], 16).unwrap_or(0);
+            return (r << 16) | (g << 8) | b;
+        }
+    }
+    c_v.as_i64() as u64
+}
+
+pub fn builtin_gfx_clear(color: Value) -> Value {
+    unsafe {
+        if GFX_DISPLAY.is_null() { return Value::None; }
+        XSetForeground(GFX_DISPLAY, GFX_GC, parse_color(color));
+        XFillRectangle(GFX_DISPLAY, GFX_WINDOW, GFX_GC, 0, 0, 2000, 2000); // Rough clear
+        XFlush(GFX_DISPLAY);
+    }
+    Value::None
+}
+
+pub fn builtin_gfx_rect(x: Value, y: Value, w: Value, h: Value, color: Value) -> Value {
+    unsafe {
+        if GFX_DISPLAY.is_null() { return Value::None; }
+        XSetForeground(GFX_DISPLAY, GFX_GC, parse_color(color));
+        XFillRectangle(GFX_DISPLAY, GFX_WINDOW, GFX_GC, x.as_i64() as i32, y.as_i64() as i32, w.as_i64() as u32, h.as_i64() as u32);
+        XFlush(GFX_DISPLAY);
+    }
+    Value::None
+}
+
+pub fn builtin_gfx_line(x1: Value, y1: Value, x2: Value, y2: Value, color: Value) -> Value {
+    unsafe {
+        if GFX_DISPLAY.is_null() { return Value::None; }
+        XSetForeground(GFX_DISPLAY, GFX_GC, parse_color(color));
+        XDrawLine(GFX_DISPLAY, GFX_WINDOW, GFX_GC, x1.as_i64() as i32, y1.as_i64() as i32, x2.as_i64() as i32, y2.as_i64() as i32);
+        XFlush(GFX_DISPLAY);
+    }
+    Value::None
+}
+
+pub fn builtin_gfx_text(x: Value, y: Value, text: Value, color: Value) -> Value {
+    unsafe {
+        if GFX_DISPLAY.is_null() { return Value::None; }
+        XSetForeground(GFX_DISPLAY, GFX_GC, parse_color(color));
+        let s = CString::new(text.to_string()).unwrap();
+        XDrawString(GFX_DISPLAY, GFX_WINDOW, GFX_GC, x.as_i64() as i32, y.as_i64() as i32, s.as_ptr(), text.to_string().len() as i32);
+        XFlush(GFX_DISPLAY);
+    }
+    Value::None
+}
+
+pub fn builtin_gfx_poll() -> Value {
+    unsafe {
+        if GFX_DISPLAY.is_null() { return Value::None; }
+        if XPending(GFX_DISPLAY) > 0 {
+            let mut ev = [0u8; 192];
+            XNextEvent(GFX_DISPLAY, &mut ev);
+            let type_ = u32::from_ne_bytes([ev[0], ev[1], ev[2], ev[3]]);
+            let map = Rc::new(RefCell::new(HashMap::new()));
+            
+            if type_ == 2 { // KeyPress
+                map.borrow_mut().insert("type".to_string(), Value::Str("key".to_string()));
+                let keycode = ev[84]; // Simple keycode offset
+                map.borrow_mut().insert("code".to_string(), Value::Num(keycode as i64));
+                return Value::Map(map);
+            }
+            if type_ == 4 { // ButtonPress
+                map.borrow_mut().insert("type".to_string(), Value::Str("click".to_string()));
+                let x = i32::from_ne_bytes([ev[32], ev[33], ev[34], ev[35]]);
+                let y = i32::from_ne_bytes([ev[36], ev[37], ev[38], ev[39]]);
+                map.borrow_mut().insert("x".to_string(), Value::Num(x as i64));
+                map.borrow_mut().insert("y".to_string(), Value::Num(y as i64));
+                return Value::Map(map);
+            }
+        }
+    }
+    Value::None
+}
+
+pub fn builtin_gfx_pixel(x: Value, y: Value, color: Value) -> Value {
+    unsafe {
+        if GFX_DISPLAY.is_null() { return Value::None; }
+        XSetForeground(GFX_DISPLAY, GFX_GC, parse_color(color));
+        XFillRectangle(GFX_DISPLAY, GFX_WINDOW, GFX_GC, x.as_i64() as i32, y.as_i64() as i32, 1, 1);
+        XFlush(GFX_DISPLAY);
+    }
+    Value::None
+}
+
+pub fn builtin_gfx_close() -> Value {
+    unsafe { if !GFX_DISPLAY.is_null() { XCloseDisplay(GFX_DISPLAY); GFX_DISPLAY = ptr::null_mut(); } }
+    Value::None
+}
+"##;
+
 const CORE_RUNTIME: &str = r##"
+
 use std::fmt;
 use std::io::{Read, Write};
 use std::rc::Rc;
@@ -659,7 +864,11 @@ pub fn builtin_math_abs(v: Value) -> Value { Value::Num(v.as_i64().abs()) }
 pub fn builtin_math_max(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64().max(v2.as_i64())) }
 pub fn builtin_math_min(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64().min(v2.as_i64())) }
 pub fn builtin_math_rand(min: Value, max: Value) -> Value { let a = min.as_i64(); let b = max.as_i64(); if a >= b { return Value::Num(a); } let mut bytes = [0u8; 8]; if let Ok(mut f) = fs::File::open("/dev/urandom") { f.read_exact(&mut bytes).ok(); } let rand_num = u64::from_le_bytes(bytes); let range = (b - a + 1) as u64; Value::Num(a + (rand_num % range) as i64) }
-pub fn builtin_math_pow(base: Value, exp: Value) -> Value { Value::Num(base.as_i64().pow(exp.as_i64() as u32)) }
+pub fn builtin_math_pow(base: Value, exp: Value) -> Value { 
+    let e = exp.as_i64();
+    if e < 0 { return Value::Num(0); }
+    Value::Num(base.as_i64().pow(e as u32)) 
+}
 pub fn builtin_math_sqrt(v: Value) -> Value { Value::Num((v.as_i64() as f64).sqrt() as i64) }
 pub fn builtin_math_log(v: Value) -> Value { Value::Num((v.as_i64() as f64).ln() as i64) }
 pub fn builtin_math_log10(v: Value) -> Value { Value::Num((v.as_i64() as f64).log10() as i64) }

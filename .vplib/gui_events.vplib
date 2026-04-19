@@ -1,0 +1,12 @@
+func gui_is_inside(px, py, rx, ry, rw, rh) {
+    if px >= rx {
+        if px <= rx + rw {
+            if py >= ry {
+                if py <= ry + rh {
+                    return 1
+                }
+            }
+        }
+    }
+    return 0
+}

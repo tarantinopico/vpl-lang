@@ -1,0 +1,9 @@
+func math_average(arr) {
+    set sum = 0
+    set count = arr_len(arr)
+    if count == 0 { return 0 }
+    for x in arr {
+        set sum = sum + x
+    }
+    return sum / count
+}

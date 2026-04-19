@@ -1,0 +1,4 @@
+func math_fibonacci(n) {
+    if n <= 1 { return n }
+    return math_fibonacci(n - 1) + math_fibonacci(n - 2)
+}

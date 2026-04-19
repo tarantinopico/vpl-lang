@@ -1,4 +1,4 @@
-VPL Language Specification & Manual (v1.8.0)
+VPL Language Specification & Manual (v1.9.0)
 ===========================================
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language for Linux.
@@ -89,7 +89,22 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 - color_rgb(r, g, b), color_hex(str), color_blend(c1, c2)
 - color_to_rgb(hex), color_to_hex(rgb_array)
 
-4. COMPILER USAGE
+[Native Graphics (Custom Windows)]
+- gfx_open(w, h, title), gfx_close()
+- gfx_clear(color), gfx_pixel(x, y, color)
+- gfx_rect(x, y, w, h, color), gfx_line(x1, y1, x2, y2, color)
+- gfx_text(x, y, text, color), gfx_poll()
+
+4. LIBRARY SYSTEM (Auto-Inclusion)
+----------------------------------
+VPL features an intelligent library auto-inclusion system designed to simplify code organization.
+- Libraries are saved as `.vplib` files.
+- The compiler automatically scans the current directory and the global `.vpl/lib/` directory.
+- If your main code (or another library) calls a function defined in any `.vplib` file (e.g., `my_custom_func()`), VPL will automatically include that library at compile time.
+- You do not need explicit `import` or `include` statements. Just call the function!
+- This ensures efficient, "pay-only-for-what-you-use" compilation with detailed resolution logs (use `--verbose` to see exactly which libraries were included).
+
+5. COMPILER USAGE
 -----------------
 $ ./vpl run program.vpl             # Compile and run immediately
 $ ./vpl build program.vpl           # Build native binary

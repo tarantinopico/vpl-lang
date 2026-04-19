@@ -28,11 +28,17 @@ pub enum Stmt {
 pub struct Parser {
     tokens: Vec<TokenInfo>,
     pos: usize,
+    source: String,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<TokenInfo>) -> Self {
-        Self { tokens, pos: 0 }
+    pub fn new(tokens: Vec<TokenInfo>, source: String) -> Self {
+        Self { tokens, pos: 0, source }
+    }
+
+    fn error(&self, line: usize, msg: &str) -> String {
+        let line_text = self.source.lines().nth(line.saturating_sub(1)).unwrap_or("");
+        format!("\n\x1b[1;31mError on line {}\x1b[0m:\n  {}\n  \x1b[1;31m^-- {}\x1b[0m", line, line_text.trim(), msg)
     }
 
     fn peek_info(&self) -> &TokenInfo {
@@ -75,30 +81,30 @@ impl Parser {
                 while self.peek() == &Token::LBracket {
                     self.advance();
                     let idx = self.parse_expr()?;
-                    if !self.match_token(std::mem::discriminant(&Token::RBracket)) { return Err(format!("[Line {}] Expected ']'", self.line())); }
+                    if !self.match_token(std::mem::discriminant(&Token::RBracket)) { return Err(self.error(self.line(), "Expected ']'")); }
                     target_expr = Expr::Index(Box::new(target_expr), Box::new(idx));
                 }
-                if !self.match_token(std::mem::discriminant(&Token::Assign)) { return Err(format!("[Line {}] Expected '='", self.line())); }
+                if !self.match_token(std::mem::discriminant(&Token::Assign)) { return Err(self.error(self.line(), "Expected '='")); }
                 let val_expr = self.parse_expr()?;
                 if let Expr::Ident(name) = target_expr { Ok(Some(Stmt::Set(name, val_expr))) }
                 else if let Expr::Index(arr, idx) = target_expr { Ok(Some(Stmt::SetIndex(*arr, *idx, val_expr))) }
-                else { Err(format!("[Line {}] Invalid assignment target", start_line)) }
+                else { Err(self.error(start_line, "Invalid assignment target")) }
             }
             Token::Say => { self.advance(); let expr = self.parse_expr()?; Ok(Some(Stmt::Say(expr))) }
             Token::If => {
                 self.advance(); let cond = self.parse_expr()?;
-                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(format!("[Line {}] Expected '{{'", self.line())); }
+                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(self.error(self.line(), "Expected '{'")); }
                 let mut then_branch = Vec::new();
                 while self.peek() != &Token::RBrace && self.peek() != &Token::Eof { if let Some(s) = self.parse_stmt()? { then_branch.push(s); } else { self.advance(); } }
-                if self.peek() == &Token::Eof { return Err(format!("[Line {}] Unterminated 'if' block", start_line)); }
+                if self.peek() == &Token::Eof { return Err(self.error(start_line, "Unterminated 'if' block")); }
                 self.advance();
                 let mut else_branch = None;
                 if self.peek() == &Token::Else {
                     self.advance();
-                    if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(format!("[Line {}] Expected '{{'", self.line())); }
+                    if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(self.error(self.line(), "Expected '{'")); }
                     let mut b = Vec::new();
                     while self.peek() != &Token::RBrace && self.peek() != &Token::Eof { if let Some(s) = self.parse_stmt()? { b.push(s); } else { self.advance(); } }
-                    if self.peek() == &Token::Eof { return Err(format!("[Line {}] Unterminated 'else' block", start_line)); }
+                    if self.peek() == &Token::Eof { return Err(self.error(start_line, "Unterminated 'else' block")); }
                     self.advance();
                     else_branch = Some(b);
                 }
@@ -106,37 +112,37 @@ impl Parser {
             }
             Token::While => {
                 self.advance(); let cond = self.parse_expr()?;
-                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(format!("[Line {}] Expected '{{'", self.line())); }
+                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(self.error(self.line(), "Expected '{'")); }
                 let mut body = Vec::new();
                 while self.peek() != &Token::RBrace && self.peek() != &Token::Eof { if let Some(s) = self.parse_stmt()? { body.push(s); } else { self.advance(); } }
-                if self.peek() == &Token::Eof { return Err(format!("[Line {}] Unterminated 'while' block", start_line)); }
+                if self.peek() == &Token::Eof { return Err(self.error(start_line, "Unterminated 'while' block")); }
                 self.advance();
                 Ok(Some(Stmt::While(cond, body)))
             }
             Token::For => {
                 self.advance();
-                let var_name = match self.advance() { Token::Ident(n) => n, _ => return Err(format!("[Line {}] Expected variable name after 'for'", self.line())) };
-                if !self.match_token(std::mem::discriminant(&Token::In)) { return Err(format!("[Line {}] Expected 'in' after '{}'", self.line(), var_name)); }
+                let var_name = match self.advance() { Token::Ident(n) => n, _ => return Err(self.error(self.line(), "Expected variable name after 'for'")) };
+                if !self.match_token(std::mem::discriminant(&Token::In)) { return Err(self.error(self.line(), &format!("Expected 'in' after '{}'", var_name))); }
                 let iterable = self.parse_expr()?;
-                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(format!("[Line {}] Expected '{{' after 'for' loop", self.line())); }
+                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(self.error(self.line(), "Expected '{' after 'for' loop")); }
                 let mut body = Vec::new();
                 while self.peek() != &Token::RBrace && self.peek() != &Token::Eof { if let Some(s) = self.parse_stmt()? { body.push(s); } else { self.advance(); } }
-                if self.peek() == &Token::Eof { return Err(format!("[Line {}] Unterminated 'for' block", start_line)); }
+                if self.peek() == &Token::Eof { return Err(self.error(start_line, "Unterminated 'for' block")); }
                 self.advance();
                 Ok(Some(Stmt::For(var_name, iterable, body)))
             }
             Token::Func => {
                 self.advance();
-                let name = match self.advance() { Token::Ident(n) => n, _ => return Err(format!("[Line {}] Expected function name", self.line())) };
-                if !self.match_token(std::mem::discriminant(&Token::LParen)) { return Err(format!("[Line {}] Expected '('", self.line())); }
+                let name = match self.advance() { Token::Ident(n) => n, _ => return Err(self.error(self.line(), "Expected function name")) };
+                if !self.match_token(std::mem::discriminant(&Token::LParen)) { return Err(self.error(self.line(), "Expected '('")); }
                 let mut params = Vec::new();
                 while self.peek() != &Token::RParen && self.peek() != &Token::Eof { if let Token::Ident(p) = self.advance() { params.push(p); } if self.peek() == &Token::Comma { self.advance(); } }
-                if self.peek() == &Token::Eof { return Err(format!("[Line {}] Unterminated function parameters", self.line())); }
+                if self.peek() == &Token::Eof { return Err(self.error(self.line(), "Unterminated function parameters")); }
                 self.advance();
-                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(format!("[Line {}] Expected '{{'", self.line())); }
+                if !self.match_token(std::mem::discriminant(&Token::LBrace)) { return Err(self.error(self.line(), "Expected '{'")); }
                 let mut body = Vec::new();
                 while self.peek() != &Token::RBrace && self.peek() != &Token::Eof { if let Some(s) = self.parse_stmt()? { body.push(s); } else { self.advance(); } }
-                if self.peek() == &Token::Eof { return Err(format!("[Line {}] Unterminated function body", self.line())); }
+                if self.peek() == &Token::Eof { return Err(self.error(self.line(), "Unterminated function body")); }
                 self.advance();
                 Ok(Some(Stmt::Func(name, params, body)))
             }
@@ -198,6 +204,11 @@ impl Parser {
             let right = self.parse_unary()?;
             return Ok(Expr::Binary(Box::new(Expr::Num(0)), "-".to_string(), Box::new(right)));
         }
+        if self.peek() == &Token::Not {
+            self.advance();
+            let right = self.parse_unary()?;
+            return Ok(Expr::Call("logic_not".to_string(), vec![right]));
+        }
         self.parse_postfix()
     }
 
@@ -206,7 +217,7 @@ impl Parser {
         while self.peek() == &Token::LBracket {
             self.advance();
             let idx = self.parse_expr()?;
-            if !self.match_token(std::mem::discriminant(&Token::RBracket)) { return Err(format!("[Line {}] Expected ']'", self.line())); }
+            if !self.match_token(std::mem::discriminant(&Token::RBracket)) { return Err(self.error(self.line(), "Expected ']'")); }
             expr = Expr::Index(Box::new(expr), Box::new(idx));
         }
         Ok(expr)
@@ -223,7 +234,7 @@ impl Parser {
                     items.push(self.parse_expr()?);
                     if self.peek() == &Token::Comma { self.advance(); }
                 }
-                if self.peek() == &Token::Eof { return Err(format!("[Line {}] Unterminated array", self.line())); }
+                if self.peek() == &Token::Eof { return Err(self.error(self.line(), "Unterminated array")); }
                 self.advance();
                 Ok(Expr::Array(items))
             }
@@ -236,7 +247,7 @@ impl Parser {
                         args.push(self.parse_expr()?);
                         if self.peek() == &Token::Comma { self.advance(); }
                     }
-                    if self.peek() == &Token::Eof { return Err(format!("[Line {}] Missing ')'", self.line())); }
+                    if self.peek() == &Token::Eof { return Err(self.error(self.line(), "Missing ')'")); }
                     self.advance();
                     Ok(Expr::Call(name, args))
                 } else { Ok(Expr::Ident(name)) }
@@ -244,10 +255,10 @@ impl Parser {
             Token::LParen => {
                 self.advance();
                 let expr = self.parse_expr()?;
-                if !self.match_token(std::mem::discriminant(&Token::RParen)) { return Err(format!("[Line {}] Missing ')'", self.line())); }
+                if !self.match_token(std::mem::discriminant(&Token::RParen)) { return Err(self.error(self.line(), "Missing ')'")); }
                 Ok(expr)
             }
-            t => Err(format!("[Line {}] Unexpected token: {:?}", self.line(), t)),
+            t => Err(self.error(self.line(), &format!("Unexpected token: {:?}", t))),
         }
     }
 }

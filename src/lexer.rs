@@ -7,7 +7,7 @@ pub enum Token {
     Plus, Minus, Star, Slash,
     EqEq, NotEq, Lt, Gt, LtEq, GtEq,
     Assign, LBrace, RBrace, LParen, RParen, Comma,
-    LBracket, RBracket, Dot,
+    LBracket, RBracket, Dot, Not,
     Eof,
 }
 
@@ -92,7 +92,7 @@ pub fn tokenize(input: &str) -> Vec<TokenInfo> {
                 '!' => {
                     chars.next();
                     if chars.peek() == Some(&'=') { chars.next(); Token::NotEq }
-                    else { chars.next(); continue; }
+                    else { Token::Not }
                 }
                 '<' => {
                     chars.next();

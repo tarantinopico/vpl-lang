@@ -1,0 +1,11 @@
+func gui_window(w, h, title) {
+    gfx_open(w, h, title)
+}
+
+func gui_clear_screen(color) {
+    gfx_clear(color)
+}
+
+func gui_close() {
+    gfx_close()
+}

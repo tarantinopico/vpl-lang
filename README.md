@@ -1,16 +1,24 @@
-# VPL Systems - Optimized Native Compiler (v1.8.0)
+# VPL Systems - Optimized Native Compiler (v1.9.0)
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language designed for Linux environments. It features a modern syntax, an extensive standard library, and a professional-grade compiler that produces tiny, standalone native binaries.
 
 ## 🚀 Key Features
 
 - **Industrial Build Pipeline:** Animated progress logs with microsecond precision.
+- **Intelligent Library System:** Automatic dependency resolution for `.vplib` files.
 - **Advanced TUI Engine:** Create professional terminal interfaces with shadows, windows, and custom boxes.
 - **Modern GUI Library:** Native desktop dialogs via built-in Zenity wrappers.
 - **Tree-Shaking Optimizer:** Final binaries only include the modules you actually use.
 - **Cross-Platform Building:** Easily compile Linux binaries or Windows `.exe` files.
 - **Scientific Math & Logic:** Full suite of trigonometric, scientific, and bitwise functions.
-- **Pro Diagnostics:** Real-time system monitoring (CPU cores, RAM usage, Uptime).
+
+## 📚 Intelligent Library System
+
+VPL automatically manages your dependencies. You don't need `import` or `include` statements.
+- Save your reusable code in `.vplib` files.
+- VPL searches in the **current directory**, a local **`.vpl/`** or **`.vplib/`** folder, and the global **`~/.vpl/lib/`** path.
+- If you call a function that is defined in any of these locations, the compiler will automatically link the necessary library.
+- **Zero Configuration:** Just write code and call functions; the compiler handles the rest.
 
 ## 📥 Installation
 

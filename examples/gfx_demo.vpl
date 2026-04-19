@@ -1,0 +1,27 @@
+func main() {
+    say "Opening Native Graphics Window..."
+    gfx_open(600, 400, "VPL Native Window")
+    
+    set running = 1
+    gfx_clear("#2c3e50") // Dark blue background
+    
+    // Draw some custom graphics
+    gfx_rect(50, 50, 100, 100, "#e74c3c") // Red square
+    gfx_line(0, 0, 600, 400, "#f1c40f")   // Yellow diagonal line
+    gfx_text(200, 100, "VPL Custom Graphics - Real Window", "#ecf0f1")
+    
+    say "Window is open. Press any key in the window to exit."
+
+    while running == 1 {
+        set ev = gfx_poll()
+        if ev == "key" {
+            set running = 0
+        }
+        
+        // Simple animation/drawing
+        gfx_pixel(math_rand(0, 600), math_rand(0, 400), "#3498db")
+    }
+    
+    gfx_close()
+    say "Window closed."
+}

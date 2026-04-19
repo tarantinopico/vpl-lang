@@ -1,0 +1,56 @@
+func main() {
+    gui_window(600, 400, "VPL Native Custom GUI")
+    
+    set running = 1
+    set counter = 0
+    set btn_hover = 0
+    set bg_color = "#2c3e50"
+
+    while running == 1 {
+        gui_clear_screen(bg_color)
+        
+        gui_label(50, 50, "VPL Native GUI - No Zenity, No TUI", "#ecf0f1")
+        gui_label(50, 80, "Counter: " + counter, "#f1c40f")
+        
+        // Custom Buttons
+        gui_button(50, 150, 150, 40, "Click Me!", "#e67e22", btn_hover)
+        gui_button(50, 210, 150, 40, "Reset", "#c0392b", 0)
+        gui_button(50, 270, 150, 40, "Quit", "#7f8c8d", 0)
+
+        set ev = gfx_poll()
+        if ev != "none" {
+            if ev["type"] == "click" {
+                set mx = ev["x"]
+                set my = ev["y"]
+                
+                // Button 1 logic
+                if gui_is_inside(mx, my, 50, 150, 150, 40) {
+                    set counter = counter + 1
+                    set bg_color = "#27ae60" // Change background on click
+                }
+                
+                // Button 2 logic
+                if gui_is_inside(mx, my, 50, 210, 150, 40) {
+                    set counter = 0
+                    set bg_color = "#2c3e50"
+                }
+                
+                // Button 3 logic
+                if gui_is_inside(mx, my, 50, 270, 150, 40) {
+                    set running = 0
+                }
+            }
+            
+            if ev["type"] == "key" {
+                if ev["code"] == 24 { // 'q' key usually
+                    set running = 0
+                }
+            }
+        }
+        
+        sys_sleep(10) // Small delay to reduce CPU usage
+    }
+    
+    gui_close()
+    say "Native GUI App finished."
+}

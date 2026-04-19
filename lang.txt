@@ -1,4 +1,4 @@
-VPL Language Specification & Manual (v1.4.0)
+VPL Language Specification & Manual (v1.5.0)
 ===========================================
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language for Linux.
@@ -93,6 +93,7 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 
 4. COMPILER USAGE
 -----------------
+$ ./vpl run program.vpl             # Compile and run immediately
 $ ./vpl build program.vpl           # Build native binary
 $ ./vpl build program.vpl -o myapp  # Build with custom name
 $ ./vpl build program.vpl -w        # Build for Windows (.exe)

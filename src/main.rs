@@ -100,10 +100,11 @@ fn check_dependencies() -> Vec<String> {
 
 fn print_usage() {
     println!("\n\x1b[1;36m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v1.4.0\x1b[0m            \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v1.5.0\x1b[0m            \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m├──────────────────────────────────────────────────────────┤\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mUSAGE:\x1b[0m                                               \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m    vpl build <file.vpl> [options]                      \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m    vpl run <file.vpl>       Compile and run on the fly \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m    vpl tui                  Start interactive selector \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m                                                          \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mOPTIONS:\x1b[0m                                             \x1b[1;36m│\x1b[0m");
@@ -111,12 +112,12 @@ fn print_usage() {
     println!("\x1b[1;36m│\x1b[0m    -w           Compile for Windows (.exe)            \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m                                                          \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mEXAMPLES:\x1b[0m                                            \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m    ./vpl tui                                           \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m    ./vpl run program.vpl                               \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m    ./vpl build program.vpl -o my_app -w                \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m└──────────────────────────────────────────────────────────┘\x1b[0m\n");
 }
 
-fn build_vpl(input_path: &str, output_name: &str, win_mode: bool) {
+fn build_vpl(input_path: &str, output_name: &str, win_mode: bool, run_after: bool) {
     let logger = Logger::new();
 
     // 0. Dependency Check
@@ -138,17 +139,19 @@ fn build_vpl(input_path: &str, output_name: &str, win_mode: bool) {
         return;
     }
 
-    logger.header(input_path, &final_bin, target_os);
+    if !run_after {
+        logger.header(input_path, &final_bin, target_os);
+    }
 
     // 1. Bootstrap
     logger.start_task("BOOTSTRAP");
     let start = Instant::now();
-    thread::sleep(Duration::from_millis(100));
+    thread::sleep(Duration::from_millis(50));
     let content = match fs::read_to_string(input_path) {
         Ok(c) => {
             let dur = start.elapsed();
             logger.complete_step("BOOTSTRAP", &format!("Loaded {} bytes", c.len()), dur);
-            logger.detail("Status", "I/O Stream synchronized");
+            if !run_after { logger.detail("Status", "I/O Stream synchronized"); }
             c
         },
         Err(e) => { logger.error("BOOTSTRAP", &format!("Read failed: {}", e)); return; }
@@ -160,7 +163,7 @@ fn build_vpl(input_path: &str, output_name: &str, win_mode: bool) {
     let tokens = lexer::tokenize(&content);
     let dur = start.elapsed();
     logger.complete_step("SCANNER", "Lexical analysis complete", dur);
-    logger.detail("Tokens", &format!("Total identified: {}", tokens.len()));
+    if !run_after { logger.detail("Tokens", &format!("Total identified: {}", tokens.len())); }
 
     // 3. Parsing
     logger.start_task("PARSER");
@@ -170,7 +173,7 @@ fn build_vpl(input_path: &str, output_name: &str, win_mode: bool) {
         Ok(a) => {
             let dur = start.elapsed();
             logger.complete_step("PARSER", "AST construction successful", dur);
-            logger.detail("Model", "High-fidelity syntax tree");
+            if !run_after { logger.detail("Model", "High-fidelity syntax tree"); }
             a
         },
         Err(e) => { logger.error("PARSER", &format!("Syntax error: {}", e)); return; }
@@ -182,7 +185,7 @@ fn build_vpl(input_path: &str, output_name: &str, win_mode: bool) {
     let (rust_code, modules) = compiler::compile(&ast);
     let dur = start.elapsed();
     logger.complete_step("OPTIMIZER", &format!("Active segments: {}", modules.len()), dur);
-    logger.detail("Inclusion", &format!("{}", modules.join(", ")));
+    if !run_after { logger.detail("Inclusion", &format!("{}", modules.join(", "))); }
 
     // 5. Codegen
     logger.start_task("CODEGEN");
@@ -194,7 +197,7 @@ fn build_vpl(input_path: &str, output_name: &str, win_mode: bool) {
     }
     let dur = start.elapsed();
     logger.complete_step("CODEGEN", "Memory sync complete", dur);
-    logger.detail("Output", &format!("{}_vpl_tmp.rs", output_name));
+    if !run_after { logger.detail("Output", &format!("{}_vpl_tmp.rs", output_name)); }
 
     // 6. Native compilation
     logger.start_task("LINKER");
@@ -209,7 +212,15 @@ fn build_vpl(input_path: &str, output_name: &str, win_mode: bool) {
         Ok(out) if out.status.success() => {
             let dur = start.elapsed();
             logger.complete_step("LINKER", "Binary linked and optimized", dur);
-            logger.success(&final_bin);
+            if run_after {
+                logger.stop_spinner();
+                println!("\n\x1b[1;32m  ➤ RUNNING SCRIPT:\x1b[0;37m ./{}\x1b[0m\n", final_bin);
+                let mut run_cmd = Command::new(format!("./{}", final_bin)).spawn().expect("Failed to run binary");
+                let _ = run_cmd.wait();
+                let _ = fs::remove_file(&final_bin);
+            } else {
+                logger.success(&final_bin);
+            }
         }
         Ok(out) => {
             logger.error("LINKER", "LLVM Backend failed.");
@@ -259,13 +270,8 @@ fn run_tui_mode() {
                     let _ = Command::new("stty").arg("-raw").arg("echo").spawn().unwrap().wait();
                     print!("\x1b[2J\x1b[H");
                     let stem = full.file_stem().unwrap().to_str().unwrap();
-                    build_vpl(full.to_str().unwrap(), stem, false);
                     
-                    if Path::new(stem).exists() {
-                        println!("\n\x1b[1;32m  ➤ RUNNING BINARY:\x1b[0;37m ./{}\x1b[0m\n", stem);
-                        let mut run_cmd = Command::new(format!("./{}", stem)).spawn().expect("Failed to run binary");
-                        let _ = run_cmd.wait();
-                    }
+                    build_vpl(full.to_str().unwrap(), stem, false, true);
 
                     println!("\n\x1b[1;36m  Build Cycle Complete.\x1b[0m Press Enter to return...");
                     let _ = io::stdin().read(&mut [0u8; 1]);
@@ -288,16 +294,23 @@ fn main() {
         run_tui_mode();
         return;
     }
-    if args.len() < 3 || args[1] != "build" {
+    if args.len() < 3 || (args[1] != "build" && args[1] != "run") {
         print_usage();
         return;
     }
+    
+    let is_run = args[1] == "run";
     let input_path = &args[2];
     let mut output_name = Path::new(input_path).file_stem().unwrap().to_str().unwrap().to_string();
+    
+    if is_run {
+        output_name = format!("vpl_run_{}_tmp", output_name);
+    }
+    
     let mut win_mode = false;
     for i in 3..args.len() {
         if args[i] == "-o" && i + 1 < args.len() { output_name = args[i + 1].clone(); }
         if args[i] == "-w" { win_mode = true; }
     }
-    build_vpl(input_path, &output_name, win_mode);
+    build_vpl(input_path, &output_name, win_mode, is_run);
 }

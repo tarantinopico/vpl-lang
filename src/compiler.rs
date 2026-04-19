@@ -236,11 +236,14 @@ fn compile_expr(expr: &Expr) -> String {
                 "tui_menu" => format!("builtin_tui_menu({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
                 "tui_cursor_pos" => format!("builtin_tui_cursor_pos({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 
-                // Utils
+                // Utils & Data
                 "input" => "builtin_input()".to_string(),
                 "num_to_str" => format!("builtin_num_to_str({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "str_to_num" => format!("builtin_str_to_num({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "num_to_hex" => format!("builtin_num_to_hex({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "type_of" => format!("builtin_type_of({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "json_stringify" => format!("builtin_json_stringify({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "json_parse" => format!("builtin_json_parse({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 
                 // Strings
                 "str_len" => format!("builtin_str_len({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
@@ -253,12 +256,20 @@ fn compile_expr(expr: &Expr) -> String {
                 "str_replace_all" => format!("builtin_str_replace_all({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
                 "str_contains" => format!("builtin_str_contains({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "str_find" => format!("builtin_str_find({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "str_index_of" => format!("builtin_str_find({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "str_last_index_of" => format!("builtin_str_last_index_of({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "str_trim" => format!("builtin_str_trim({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "str_trim_start" => format!("builtin_str_trim_start({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "str_trim_end" => format!("builtin_str_trim_end({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "str_slice" => format!("builtin_str_slice({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
                 "str_starts_with" => format!("builtin_str_starts_with({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "str_ends_with" => format!("builtin_str_ends_with({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "str_repeat" => format!("builtin_str_repeat({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "str_is_num" => format!("builtin_str_is_num({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "str_pad_left" => format!("builtin_str_pad_left({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "str_pad_right" => format!("builtin_str_pad_right({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "str_char_code" => format!("builtin_str_char_code({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "str_from_char_code" => format!("builtin_str_from_char_code({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 
                 // FS
                 "fs_read" => format!("builtin_fs_read({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
@@ -280,6 +291,11 @@ fn compile_expr(expr: &Expr) -> String {
                 "arr_len" => format!("builtin_arr_len({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "arr_remove" => format!("builtin_arr_remove({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "arr_insert" => format!("builtin_arr_insert({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "arr_contains" => format!("builtin_arr_contains({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "arr_reverse" => format!("builtin_arr_reverse({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "arr_sort" => format!("builtin_arr_sort({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "arr_slice" => format!("builtin_arr_slice({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "arr_find" => format!("builtin_arr_find({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 
                 // Maps
                 "map_new" => "builtin_map_new()".to_string(),
@@ -297,15 +313,45 @@ fn compile_expr(expr: &Expr) -> String {
                 "math_pow" => format!("builtin_math_pow({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "math_sqrt" => format!("builtin_math_sqrt({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "math_log" => format!("builtin_math_log({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_log10" => format!("builtin_math_log10({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "math_sin" => format!("builtin_math_sin({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "math_cos" => format!("builtin_math_cos({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_tan" => format!("builtin_math_tan({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_asin" => format!("builtin_math_asin({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_acos" => format!("builtin_math_acos({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_atan" => format!("builtin_math_atan({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "math_floor" => format!("builtin_math_floor({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "math_ceil" => format!("builtin_math_ceil({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "math_round" => format!("builtin_math_round({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_cbrt" => format!("builtin_math_cbrt({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_pi" => "builtin_math_pi()".to_string(),
+                "math_e" => "builtin_math_e()".to_string(),
+                "math_tau" => "builtin_math_tau()".to_string(),
+                "math_hypot" => format!("builtin_math_hypot({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "math_exp" => format!("builtin_math_exp({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_deg_to_rad" => format!("builtin_math_deg_to_rad({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_rad_to_deg" => format!("builtin_math_rad_to_deg({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "math_gcd" => format!("builtin_math_gcd({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "math_lcm" => format!("builtin_math_lcm({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "math_factorial" => format!("builtin_math_factorial({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                
+                // Logic
+                "logic_and" => format!("builtin_logic_and({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "logic_or" => format!("builtin_logic_or({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "logic_not" => format!("builtin_logic_not({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                
+                // Logic/Bitwise
+                "bit_and" => format!("builtin_bit_and({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "bit_or" => format!("builtin_bit_or({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "bit_xor" => format!("builtin_bit_xor({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "bit_not" => format!("builtin_bit_not({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "bit_shl" => format!("builtin_bit_shl({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "bit_shr" => format!("builtin_bit_shr({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 
                 // System
                 "sys_exec" => format!("builtin_sys_exec({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_env" => format!("builtin_sys_env({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "sys_env_set" => format!("builtin_sys_env_set({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "sys_hostname" => "builtin_sys_hostname()".to_string(),
                 "sys_username" => "builtin_sys_username()".to_string(),
                 "sys_user_home" => "builtin_sys_user_home()".to_string(),
@@ -318,6 +364,7 @@ fn compile_expr(expr: &Expr) -> String {
                 "sys_cd" => format!("builtin_sys_cd({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_shell" => format!("builtin_sys_shell({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_sleep" => format!("builtin_sys_sleep({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "sys_wait" => format!("builtin_sys_sleep({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 
                 // Network
                 "net_get" => format!("builtin_net_get({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
@@ -325,11 +372,12 @@ fn compile_expr(expr: &Expr) -> String {
                 "net_ping" => format!("builtin_net_ping({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "net_download" => format!("builtin_net_download({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "net_serve" => format!("builtin_net_serve({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
-                
-                // Data
-                "type_of" => format!("builtin_type_of({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
-                "json_stringify" => format!("builtin_json_stringify({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
-                "json_parse" => format!("builtin_json_parse({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "net_ip" => "builtin_net_ip()".to_string(),
+                "net_interfaces" => "builtin_net_interfaces()".to_string(),
+                "net_uptime" => "builtin_net_uptime()".to_string(),
+                "net_hostname" => "builtin_sys_hostname()".to_string(),
+                "net_ping_ms" => format!("builtin_net_ping_ms({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "net_resolve" => format!("builtin_net_resolve({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 
                 // GUI
                 "gui_msg" => format!("builtin_gui_msg({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
@@ -339,10 +387,20 @@ fn compile_expr(expr: &Expr) -> String {
                 "gui_input" => format!("builtin_gui_input({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "gui_password" => format!("builtin_gui_password({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "gui_file" => format!("builtin_gui_file({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "gui_file_save" => format!("builtin_gui_file_save({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "gui_calendar" => format!("builtin_gui_calendar({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "gui_color" => format!("builtin_gui_color({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "gui_list" => format!("builtin_gui_list({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
                 "gui_scale" => format!("builtin_gui_scale({}, {}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string()), arg_strs.get(5).unwrap_or(&"Value::None".to_string())),
+                "gui_notify" => format!("builtin_gui_notify({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                
+                // Color Tools
+                "color_rgb" => format!("builtin_color_rgb({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
+                "color_hex" => format!("builtin_color_hex({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "color_blend" => format!("builtin_color_blend({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "color_to_rgb" => format!("builtin_color_to_rgb({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "color_to_hex" => format!("builtin_color_to_hex({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+
                 _ => format!("vpl_fn_{}({})", name, arg_strs.join(", "))
             }
         }
@@ -364,16 +422,19 @@ fn generate_runtime(used: &HashSet<String>) -> (String, Vec<String>) {
     if used.iter().any(|x| x.starts_with("str_") || x.starts_with("num_to_") || x == "type_of" || x == "json_stringify") { r.push_str(STR_RUNTIME); mods.push("STRING/DATA".to_string()); }
     if used.iter().any(|x| x.starts_with("math_")) { r.push_str(MATH_RUNTIME); mods.push("MATH".to_string()); }
     if used.iter().any(|x| x.starts_with("sys_")) { r.push_str(SYS_RUNTIME); mods.push("SYSTEM".to_string()); }
-    if used.contains("net_get") || used.contains("net_serve") || used.contains("net_post") || used.contains("net_ping") || used.contains("net_download") { r.push_str(NET_RUNTIME); mods.push("NETWORK".to_string()); }
+    if used.contains("net_get") || used.contains("net_serve") || used.contains("net_post") || used.contains("net_ping") || used.contains("net_download") || used.contains("net_ip") { r.push_str(NET_RUNTIME); mods.push("NETWORK".to_string()); }
     if used.iter().any(|x| x.starts_with("arr_") || x == "arr_literal" || x == "arr_index") { r.push_str(ARR_RUNTIME); mods.push("ARRAY".to_string()); }
     if used.iter().any(|x| x.starts_with("map_")) { r.push_str(MAP_RUNTIME); mods.push("MAP".to_string()); }
     if used.iter().any(|x| x.starts_with("gui_")) { r.push_str(GUI_RUNTIME); mods.push("GUI".to_string()); }
     if used.contains("json_parse") { r.push_str(JSON_RUNTIME); mods.push("JSON".to_string()); }
+    if used.iter().any(|x| x.starts_with("bit_")) { r.push_str(BIT_RUNTIME); mods.push("LOGIC/BITWISE".to_string()); }
+    if used.iter().any(|x| x.starts_with("color_")) { r.push_str(COLOR_RUNTIME); mods.push("COLOR".to_string()); }
+    if used.iter().any(|x| x.starts_with("logic_")) { r.push_str(LOGIC_RUNTIME); mods.push("LOGIC".to_string()); }
     
     (r, mods)
 }
 
-const CORE_RUNTIME: &str = r#"
+const CORE_RUNTIME: &str = r##"
 use std::fmt;
 use std::io::{Read, Write};
 use std::rc::Rc;
@@ -436,9 +497,9 @@ pub fn builtin_fs_mkdir(path: Value) -> Value { if let Value::Str(p) = path { re
 pub fn builtin_fs_move(old: Value, new: Value) -> Value { if let (Value::Str(o), Value::Str(n)) = (old, new) { return Value::Num(if fs::rename(o, n).is_ok() { 1 } else { 0 }); } Value::Num(0) }
 pub fn builtin_fs_copy(src: Value, dst: Value) -> Value { if let (Value::Str(s), Value::Str(d)) = (src, dst) { return Value::Num(if fs::copy(s, d).is_ok() { 1 } else { 0 }); } Value::Num(0) }
 pub fn builtin_fs_chmod(path: Value, mode: Value) -> Value { #[cfg(unix)] { use std::os::unix::fs::PermissionsExt; if let (Value::Str(p), Value::Num(m)) = (path, mode) { if fs::set_permissions(p, fs::Permissions::from_mode(m as u32)).is_ok() { return Value::Num(1); } } } Value::Num(0) }
-"#;
+"##;
 
-const TUI_RUNTIME: &str = r#"
+const TUI_RUNTIME: &str = r##"
 #[repr(C)] struct termios { c_iflag: u32, c_oflag: u32, c_cflag: u32, c_lflag: u32, c_line: u8, c_cc: [u8; 32], c_ispeed: u32, c_ospeed: u32 }
 #[repr(C)] struct winsize { ws_row: u16, ws_col: u16, ws_xpixel: u16, ws_ypixel: u16 }
 extern "C" { fn tcgetattr(fd: i32, termios_p: *mut termios) -> i32; fn tcsetattr(fd: i32, optional_actions: i32, termios_p: *const termios) -> i32; fn ioctl(fd: i32, request: u64, ...) -> i32; }
@@ -466,22 +527,22 @@ pub fn builtin_tui_read_line(x_v: Value, y_v: Value, w_v: Value) -> Value { let 
 pub fn builtin_tui_draw_button(x_v: Value, y_v: Value, w_v: Value, h_v: Value, text_v: Value) -> Value { let x = x_v.as_i64(); let y = y_v.as_i64(); let w = w_v.as_i64(); let h = h_v.as_i64(); let text = text_v.to_string(); builtin_tui_fill(x_v.clone(), y_v.clone(), w_v.clone(), h_v.clone(), Value::Str(" ".to_string())); builtin_tui_draw_box(x_v.clone(), y_v.clone(), w_v.clone(), h_v.clone()); let text_x = x + (w - text.len() as i64) / 2; let text_y = y + h / 2; print!("\x1b[{};{}H{}", text_y, text_x, text); std::io::stdout().flush().ok(); Value::None }
 pub fn builtin_tui_menu(x_v: Value, y_v: Value, w_v: Value, items_v: Value, selected_v: Value) -> Value { let x = x_v.as_i64(); let y = y_v.as_i64(); let w = w_v.as_i64(); let selected = selected_v.as_i64(); if let Value::Array(items) = items_v { let b = items.borrow(); for (i, item) in b.iter().enumerate() { if i as i64 == selected { print!("\x1b[{};{}H\x1b[7m {:<width$} \x1b[0m", y + i as i64, x, item.to_string(), width = (w as usize - 2)); } else { print!("\x1b[{};{}H  {:<width$} ", y + i as i64, x, item.to_string(), width = (w as usize - 2)); } } } std::io::stdout().flush().ok(); Value::None }
 pub fn builtin_tui_cursor_pos(x: Value, y: Value) -> Value { print!("\x1b[{};{}H", y.as_i64(), x.as_i64()); std::io::stdout().flush().ok(); Value::None }
-"#;
+"##;
 
-const INPUT_RUNTIME: &str = r#"
+const INPUT_RUNTIME: &str = r##"
 pub fn builtin_input() -> Value { let mut input = String::new(); std::io::stdin().read_line(&mut input).ok(); Value::Str(input.trim().to_string()) }
-"#;
+"##;
 
-const FS_RUNTIME: &str = r#"
+const FS_RUNTIME: &str = r##"
 pub fn builtin_fs_read(path: Value) -> Value { if let Value::Str(p) = path { fs::read_to_string(p).map(Value::Str).unwrap_or(Value::None) } else { Value::None } }
 pub fn builtin_fs_write(path: Value, content: Value) -> Value { if let (Value::Str(p), Value::Str(c)) = (path, content) { fs::write(p, c).map(|_| Value::Num(1)).unwrap_or(Value::Num(0)) } else { Value::Num(0) } }
 pub fn builtin_fs_append(path: Value, content: Value) -> Value { if let (Value::Str(p), Value::Str(c)) = (path, content) { if let Ok(mut f) = fs::OpenOptions::new().append(true).create(true).open(p) { if f.write_all(c.as_bytes()).is_ok() { return Value::Num(1); } } } Value::Num(0) }
 pub fn builtin_fs_list(path: Value) -> Value { if let Value::Str(p) = path { let mut items = Vec::new(); if let Ok(entries) = fs::read_dir(p) { for entry in entries.flatten() { if let Ok(name) = entry.file_name().into_string() { items.push(Value::Str(name)); } } } items.sort_by(|a, b| if let (Value::Str(s1), Value::Str(s2)) = (a, b) { s1.cmp(s2) } else { std::cmp::Ordering::Equal }); Value::Array(Rc::new(RefCell::new(items))) } else { Value::Array(Rc::new(RefCell::new(Vec::new()))) } }
 pub fn builtin_fs_is_dir(path: Value) -> Value { if let Value::Str(p) = path { if let Ok(m) = fs::metadata(p) { return Value::Num(if m.is_dir() { 1 } else { 0 }); } } Value::Num(0) }
 pub fn builtin_fs_size(path: Value) -> Value { if let Value::Str(p) = path { if let Ok(m) = fs::metadata(p) { return Value::Num(m.len() as i64); } } Value::Num(-1) }
-"#;
+"##;
 
-const STR_RUNTIME: &str = r#"
+const STR_RUNTIME: &str = r##"
 pub fn builtin_str_len(v: Value) -> Value { if let Value::Str(s) = v { Value::Num(s.chars().count() as i64) } else { Value::Num(0) } }
 pub fn builtin_str_at(v: Value, idx: Value) -> Value { if let Value::Str(s) = v { let i = idx.as_i64(); if i >= 0 { if let Some(c) = s.chars().nth(i as usize) { return Value::Str(c.to_string()); } } } Value::None }
 pub fn builtin_num_to_str(v: Value) -> Value { Value::Str(v.to_string()) }
@@ -496,25 +557,23 @@ pub fn builtin_str_replace_all(v: Value, old: Value, new: Value) -> Value { if l
 pub fn builtin_str_contains(v: Value, sub: Value) -> Value { if let (Value::Str(s), Value::Str(sub)) = (v, sub) { return Value::Num(if s.contains(&sub) { 1 } else { 0 }); } Value::Num(0) }
 pub fn builtin_str_find(v: Value, sub: Value) -> Value { if let (Value::Str(s), Value::Str(sub)) = (v, sub) { if let Some(pos) = s.find(&sub) { return Value::Num(pos as i64); } } Value::Num(-1) }
 pub fn builtin_str_trim(v: Value) -> Value { if let Value::Str(s) = v { Value::Str(s.trim().to_string()) } else { Value::None } }
+pub fn builtin_str_trim_start(v: Value) -> Value { if let Value::Str(s) = v { Value::Str(s.trim_start().to_string()) } else { Value::None } }
+pub fn builtin_str_trim_end(v: Value) -> Value { if let Value::Str(s) = v { Value::Str(s.trim_end().to_string()) } else { Value::None } }
 pub fn builtin_str_slice(v: Value, start: Value, len: Value) -> Value { if let Value::Str(s) = v { let st = start.as_i64() as usize; let l = len.as_i64() as usize; let chars: Vec<char> = s.chars().collect(); if st < chars.len() { let end = std::cmp::min(st + l, chars.len()); return Value::Str(chars[st..end].iter().collect()); } } Value::Str("".to_string()) }
 pub fn builtin_str_starts_with(v: Value, p: Value) -> Value { if let (Value::Str(s), Value::Str(prefix)) = (v, p) { Value::Num(if s.starts_with(&prefix) { 1 } else { 0 }) } else { Value::Num(0) } }
 pub fn builtin_str_ends_with(v: Value, p: Value) -> Value { if let (Value::Str(s), Value::Str(suffix)) = (v, p) { Value::Num(if s.ends_with(&suffix) { 1 } else { 0 }) } else { Value::Num(0) } }
-pub fn builtin_str_repeat(v: Value, n: Value) -> Value { if let Value::Str(s) = v { Value::Str(s.repeat(n.as_i64() as usize)) } else { Value::None } }
+pub fn builtin_str_repeat(v: Value, n: Value) -> Value { if let (Value::Str(s), Value::Num(n)) = (v, n) { return Value::Str(s.repeat(n as usize)); } Value::None }
 pub fn builtin_str_is_num(v: Value) -> Value { if let Value::Str(s) = v { Value::Num(if s.parse::<i64>().is_ok() { 1 } else { 0 }) } else { Value::Num(0) } }
+pub fn builtin_str_pad_left(v: Value, n: Value, ch: Value) -> Value { if let (Value::Str(s), Value::Num(n), Value::Str(c)) = (v, n, ch) { let mut res = c.repeat(n as usize); res.push_str(&s); return Value::Str(res); } Value::None }
+pub fn builtin_str_pad_right(v: Value, n: Value, ch: Value) -> Value { if let (Value::Str(s), Value::Num(n), Value::Str(c)) = (v, n, ch) { let mut res = s; res.push_str(&c.repeat(n as usize)); return Value::Str(res); } Value::None }
+pub fn builtin_str_char_code(v: Value, idx: Value) -> Value { if let (Value::Str(s), Value::Num(i)) = (v, idx) { if let Some(c) = s.chars().nth(i as usize) { return Value::Num(c as i64); } } Value::None }
+pub fn builtin_str_from_char_code(v: Value) -> Value { Value::Str((v.as_i64() as u8 as char).to_string()) }
+pub fn builtin_str_last_index_of(v: Value, sub: Value) -> Value { if let (Value::Str(s), Value::Str(sub)) = (v, sub) { if let Some(pos) = s.rfind(&sub) { return Value::Num(pos as i64); } } Value::Num(-1) }
 pub fn builtin_type_of(v: Value) -> Value { match v { Value::Num(_) => Value::Str("num".to_string()), Value::Str(_) => Value::Str("str".to_string()), Value::Array(_) => Value::Str("arr".to_string()), Value::Map(_) => Value::Str("map".to_string()), Value::None => Value::Str("none".to_string()) } }
 pub fn builtin_json_stringify(v: Value) -> Value { fn stringify(val: &Value) -> String { match val { Value::Num(n) => n.to_string(), Value::Str(s) => format!("\"{}\"", s.replace("\"", "\\\"").replace("\n", "\\n")), Value::Array(a) => { let items: Vec<String> = a.borrow().iter().map(|x| stringify(x)).collect(); format!("[{}]", items.join(",")) } Value::Map(m) => { let items: Vec<String> = m.borrow().iter().map(|(k, v)| format!("\"{}\":{}", k, stringify(v))).collect(); format!("{{{}}}", items.join(",")) } Value::None => "null".to_string(), } } Value::Str(stringify(&v)) }
-"#;
+"##;
 
-const MAP_RUNTIME: &str = r#"
-pub fn builtin_map_new() -> Value { Value::Map(Rc::new(RefCell::new(HashMap::new()))) }
-pub fn builtin_map_get(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow().get(&k).cloned().unwrap_or(Value::None) } else { Value::None } }
-pub fn builtin_map_set(map: Value, key: Value, val: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow_mut().insert(k, val); return Value::Num(1); } Value::Num(0) }
-pub fn builtin_map_has(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { return Value::Num(if m.borrow().contains_key(&k) { 1 } else { 0 }); } Value::Num(0) }
-pub fn builtin_map_keys(map: Value) -> Value { if let Value::Map(m) = map { let keys: Vec<Value> = m.borrow().keys().map(|k| Value::Str(k.clone())).collect(); return Value::Array(Rc::new(RefCell::new(keys))); } Value::Array(Rc::new(RefCell::new(Vec::new()))) }
-pub fn builtin_map_remove(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow_mut().remove(&k); return Value::Num(1); } Value::Num(0) }
-"#;
-
-const MATH_RUNTIME: &str = r#"
+const MATH_RUNTIME: &str = r##"
 pub fn builtin_math_abs(v: Value) -> Value { Value::Num(v.as_i64().abs()) }
 pub fn builtin_math_max(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64().max(v2.as_i64())) }
 pub fn builtin_math_min(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64().min(v2.as_i64())) }
@@ -522,16 +581,33 @@ pub fn builtin_math_rand(min: Value, max: Value) -> Value { let a = min.as_i64()
 pub fn builtin_math_pow(base: Value, exp: Value) -> Value { Value::Num(base.as_i64().pow(exp.as_i64() as u32)) }
 pub fn builtin_math_sqrt(v: Value) -> Value { Value::Num((v.as_i64() as f64).sqrt() as i64) }
 pub fn builtin_math_log(v: Value) -> Value { Value::Num((v.as_i64() as f64).ln() as i64) }
+pub fn builtin_math_log10(v: Value) -> Value { Value::Num((v.as_i64() as f64).log10() as i64) }
 pub fn builtin_math_sin(v: Value) -> Value { Value::Num((v.as_i64() as f64).sin() as i64) }
 pub fn builtin_math_cos(v: Value) -> Value { Value::Num((v.as_i64() as f64).cos() as i64) }
+pub fn builtin_math_tan(v: Value) -> Value { Value::Num((v.as_i64() as f64).tan() as i64) }
+pub fn builtin_math_asin(v: Value) -> Value { Value::Num((v.as_i64() as f64).asin() as i64) }
+pub fn builtin_math_acos(v: Value) -> Value { Value::Num((v.as_i64() as f64).acos() as i64) }
+pub fn builtin_math_atan(v: Value) -> Value { Value::Num((v.as_i64() as f64).atan() as i64) }
 pub fn builtin_math_floor(v: Value) -> Value { Value::Num((v.as_i64() as f64).floor() as i64) }
 pub fn builtin_math_ceil(v: Value) -> Value { Value::Num((v.as_i64() as f64).ceil() as i64) }
 pub fn builtin_math_round(v: Value) -> Value { Value::Num((v.as_i64() as f64).round() as i64) }
-"#;
+pub fn builtin_math_cbrt(v: Value) -> Value { Value::Num((v.as_i64() as f64).cbrt() as i64) }
+pub fn builtin_math_pi() -> Value { Value::Num(3) } 
+pub fn builtin_math_e() -> Value { Value::Num(2) }
+pub fn builtin_math_tau() -> Value { Value::Num(6) }
+pub fn builtin_math_hypot(v1: Value, v2: Value) -> Value { Value::Num((v1.as_i64() as f64).hypot(v2.as_i64() as f64) as i64) }
+pub fn builtin_math_exp(v: Value) -> Value { Value::Num((v.as_i64() as f64).exp() as i64) }
+pub fn builtin_math_deg_to_rad(v: Value) -> Value { Value::Num((v.as_i64() as f64).to_radians() as i64) }
+pub fn builtin_math_rad_to_deg(v: Value) -> Value { Value::Num((v.as_i64() as f64).to_degrees() as i64) }
+pub fn builtin_math_gcd(v1: Value, v2: Value) -> Value { fn gcd(a: i64, b: i64) -> i64 { if b == 0 { a } else { gcd(b, a % b) } } Value::Num(gcd(v1.as_i64(), v2.as_i64())) }
+pub fn builtin_math_lcm(v1: Value, v2: Value) -> Value { let a = v1.as_i64(); let b = v2.as_i64(); if a == 0 || b == 0 { return Value::Num(0); } fn gcd(a: i64, b: i64) -> i64 { if b == 0 { a } else { gcd(b, a % b) } } Value::Num((a * b).abs() / gcd(a, b)) }
+pub fn builtin_math_factorial(v: Value) -> Value { let n = v.as_i64(); if n < 0 { return Value::None; } let mut res = 1; for i in 1..=n { res *= i; } Value::Num(res) }
+"##;
 
-const SYS_RUNTIME: &str = r#"
+const SYS_RUNTIME: &str = r##"
 pub fn builtin_sys_exec(cmd: Value) -> Value { if let Value::Str(c) = cmd { if let Ok(o) = Command::new("sh").arg("-c").arg(c).output() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } } Value::None }
 pub fn builtin_sys_env(n: Value) -> Value { if let Value::Str(name) = n { if let Ok(v) = std::env::var(name) { return Value::Str(v); } } Value::None }
+pub fn builtin_sys_env_set(n: Value, v: Value) -> Value { if let (Value::Str(name), Value::Str(val)) = (n, v) { std::env::set_var(name, val); return Value::Num(1); } Value::Num(0) }
 pub fn builtin_sys_time() -> Value { Value::Num(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64) }
 pub fn builtin_sys_exit(code: Value) -> Value { std::process::exit(code.as_i64() as i32); }
 pub fn builtin_sys_args() -> Value { let args: Vec<Value> = std::env::args().skip(1).map(Value::Str).collect(); Value::Array(Rc::new(RefCell::new(args))) }
@@ -544,27 +620,46 @@ pub fn builtin_sys_os() -> Value { Value::Str(std::env::consts::OS.to_string()) 
 pub fn builtin_sys_hostname() -> Value { if let Ok(h) = fs::read_to_string("/proc/sys/kernel/hostname") { return Value::Str(h.trim().to_string()); } Value::Str("unknown".to_string()) }
 pub fn builtin_sys_username() -> Value { if let Ok(u) = std::env::var("USER") { return Value::Str(u); } Value::Str("unknown".to_string()) }
 pub fn builtin_sys_user_home() -> Value { if let Ok(u) = std::env::var("HOME") { return Value::Str(u); } Value::Str("unknown".to_string()) }
-"#;
+"##;
 
-const NET_RUNTIME: &str = r#"
-use std::net::{TcpListener, TcpStream};
+const NET_RUNTIME: &str = r##"
+use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::io::{BufRead, BufReader};
 pub fn builtin_net_get(url: Value) -> Value { if let Value::Str(u) = url { if let Ok(o) = Command::new("curl").arg("-s").arg("-L").arg(u).output() { if o.status.success() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } } } Value::None }
 pub fn builtin_net_post(url: Value, body: Value) -> Value { if let (Value::Str(u), Value::Str(b)) = (url, body) { if let Ok(o) = Command::new("curl").arg("-s").arg("-X").arg("POST").arg("-d").arg(b).arg(u).output() { if o.status.success() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } } } Value::None }
 pub fn builtin_net_download(url: Value, path: Value) -> Value { if let (Value::Str(u), Value::Str(p)) = (url, path) { if let Ok(mut s) = Command::new("curl").arg("-s").arg("-L").arg("-o").arg(p).arg(u).spawn() { if let Ok(es) = s.wait() { return Value::Num(if es.success() { 1 } else { 0 }); } } } Value::Num(0) }
 pub fn builtin_net_ping(host: Value) -> Value { if let Value::Str(h) = host { let s = Command::new("ping").arg("-c").arg("1").arg("-W").arg("1").arg(h).status(); return Value::Num(if s.map(|x| x.success()).unwrap_or(false) { 1 } else { 0 }); } Value::Num(0) }
+pub fn builtin_net_ping_ms(host: Value) -> Value { if let Value::Str(h) = host { if let Ok(o) = Command::new("ping").arg("-c").arg("1").arg("-W").arg("1").arg(h).output() { let s = String::from_utf8_lossy(&o.stdout); if let Some(p) = s.find("time=") { let sub = &s[p+5..]; if let Some(end) = sub.find(" ms") { if let Ok(ms) = sub[..end].parse::<f64>() { return Value::Num(ms as i64); } } } } } Value::Num(-1) }
 pub fn builtin_net_serve(port: Value) -> Value { let p = port.as_i64(); if let Ok(listener) = TcpListener::bind(format!("0.0.0.0:{}", p)) { if let Ok((mut stream, _)) = listener.accept() { let mut reader = BufReader::new(&stream); let mut request_line = String::new(); if reader.read_line(&mut request_line).is_ok() { let parts: Vec<&str> = request_line.split_whitespace().collect(); if parts.len() >= 2 { let map = Rc::new(RefCell::new(HashMap::new())); map.borrow_mut().insert("method".to_string(), Value::Str(parts[0].to_string())); map.borrow_mut().insert("path".to_string(), Value::Str(parts[1].to_string())); let response = "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK"; stream.write_all(response.as_bytes()).ok(); return Value::Map(map); } } } } Value::None }
-"#;
+pub fn builtin_net_ip() -> Value { if let Ok(o) = Command::new("curl").arg("-s").arg("https://api.ipify.org").output() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } Value::None }
+pub fn builtin_net_interfaces() -> Value { if let Ok(o) = Command::new("ip").arg("-br").arg("addr").output() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } Value::None }
+pub fn builtin_net_uptime() -> Value { if let Ok(o) = Command::new("uptime").arg("-p").output() { return Value::Str(String::from_utf8_lossy(&o.stdout).trim().replace("up ", "")); } Value::None }
+pub fn builtin_net_resolve(host: Value) -> Value { if let Value::Str(h) = host { if let Ok(mut addrs) = (h.as_str(), 0).to_socket_addrs() { if let Some(addr) = addrs.next() { return Value::Str(addr.ip().to_string()); } } } Value::None }
+"##;
 
-const ARR_RUNTIME: &str = r#"
+const MAP_RUNTIME: &str = r##"
+pub fn builtin_map_new() -> Value { Value::Map(Rc::new(RefCell::new(HashMap::new()))) }
+pub fn builtin_map_get(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow().get(&k).cloned().unwrap_or(Value::None) } else { Value::None } }
+pub fn builtin_map_set(map: Value, key: Value, val: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow_mut().insert(k, val); return Value::Num(1); } Value::Num(0) }
+pub fn builtin_map_has(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { return Value::Num(if m.borrow().contains_key(&k) { 1 } else { 0 }); } Value::Num(0) }
+pub fn builtin_map_keys(map: Value) -> Value { if let Value::Map(m) = map { let mut keys: Vec<Value> = m.borrow().keys().map(|k| Value::Str(k.clone())).collect(); keys.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)); return Value::Array(Rc::new(RefCell::new(keys))); } Value::Array(Rc::new(RefCell::new(Vec::new()))) }
+pub fn builtin_map_remove(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow_mut().remove(&k); return Value::Num(1); } Value::Num(0) }
+"##;
+
+const ARR_RUNTIME: &str = r##"
 pub fn builtin_arr_push(arr: Value, val: Value) -> Value { if let Value::Array(a) = arr { a.borrow_mut().push(val); return Value::Num(1); } Value::Num(0) }
 pub fn builtin_arr_pop(arr: Value) -> Value { if let Value::Array(a) = arr { return a.borrow_mut().pop().unwrap_or(Value::None); } Value::None }
 pub fn builtin_arr_insert(arr: Value, idx: Value, val: Value) -> Value { if let Value::Array(a) = arr { let i = idx.as_i64(); if i >= 0 && (i as usize) <= a.borrow().len() { a.borrow_mut().insert(i as usize, val); return Value::Num(1); } } Value::Num(0) }
 pub fn builtin_arr_len(arr: Value) -> Value { if let Value::Array(a) = arr { return Value::Num(a.borrow().len() as i64); } Value::Num(0) }
 pub fn builtin_arr_remove(arr: Value, idx: Value) -> Value { if let Value::Array(a) = arr { let i = idx.as_i64(); if i >= 0 && (i as usize) < a.borrow().len() { return a.borrow_mut().remove(i as usize); } } Value::None }
-"#;
+pub fn builtin_arr_contains(arr: Value, val: Value) -> Value { if let Value::Array(a) = arr { return Value::Num(if a.borrow().contains(&val) { 1 } else { 0 }); } Value::Num(0) }
+pub fn builtin_arr_reverse(arr: Value) -> Value { if let Value::Array(a) = arr { a.borrow_mut().reverse(); return Value::Num(1); } Value::Num(0) }
+pub fn builtin_arr_sort(arr: Value) -> Value { if let Value::Array(a) = arr { a.borrow_mut().sort_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal)); return Value::Num(1); } Value::Num(0) }
+pub fn builtin_arr_slice(arr: Value, start: Value, end: Value) -> Value { if let Value::Array(a) = arr { let st = start.as_i64() as usize; let en = end.as_i64() as usize; let b = a.borrow(); if st < b.len() { let e = std::cmp::min(en, b.len()); return Value::Array(Rc::new(RefCell::new(b[st..e].to_vec()))); } } Value::Array(Rc::new(RefCell::new(Vec::new()))) }
+pub fn builtin_arr_find(arr: Value, val: Value) -> Value { if let Value::Array(a) = arr { if let Some(i) = a.borrow().iter().position(|x| x == &val) { return Value::Num(i as i64); } } Value::Num(-1) }
+"##;
 
-const GUI_RUNTIME: &str = r#"
+const GUI_RUNTIME: &str = r##"
 pub fn builtin_gui_msg(msg: Value, title: Value) -> Value { if let (Value::Str(m), Value::Str(t)) = (msg, title) { Command::new("zenity").arg("--info").arg("--text").arg(m).arg("--title").arg(t).output().ok(); } Value::None }
 pub fn builtin_gui_error(msg: Value, title: Value) -> Value { if let (Value::Str(m), Value::Str(t)) = (msg, title) { Command::new("zenity").arg("--error").arg("--text").arg(m).arg("--title").arg(t).output().ok(); } Value::None }
 pub fn builtin_gui_warning(msg: Value, title: Value) -> Value { if let (Value::Str(m), Value::Str(t)) = (msg, title) { Command::new("zenity").arg("--warning").arg("--text").arg(m).arg("--title").arg(t).output().ok(); } Value::None }
@@ -576,9 +671,11 @@ pub fn builtin_gui_calendar(title: Value) -> Value { if let Value::Str(t) = titl
 pub fn builtin_gui_color(title: Value) -> Value { if let Value::Str(t) = title { if let Ok(out) = Command::new("zenity").arg("--color-selection").arg("--title").arg(t).output() { if out.status.success() { return Value::Str(String::from_utf8_lossy(&out.stdout).trim().to_string()); } } } Value::None }
 pub fn builtin_gui_list(title: Value, col: Value, items: Value) -> Value { if let (Value::Str(t), Value::Str(c), Value::Array(a)) = (title, col, items) { let mut cmd = Command::new("zenity"); cmd.arg("--list").arg("--title").arg(&t).arg(format!("--column={}", c)); for item in a.borrow().iter() { cmd.arg(item.to_string()); } if let Ok(out) = cmd.output() { if out.status.success() { return Value::Str(String::from_utf8_lossy(&out.stdout).trim().to_string()); } } } Value::None }
 pub fn builtin_gui_scale(title: Value, text: Value, min: Value, max: Value, val: Value, step: Value) -> Value { if let (Value::Str(t), Value::Str(tx)) = (title, text) { if let Ok(out) = Command::new("zenity").arg("--scale").arg("--title").arg(t).arg("--text").arg(tx).arg(format!("--min-value={}", min.as_i64())).arg(format!("--max-value={}", max.as_i64())).arg(format!("--value={}", val.as_i64())).arg(format!("--step={}", step.as_i64())).output() { if out.status.success() { let res = String::from_utf8_lossy(&out.stdout).trim().to_string(); if let Ok(n) = res.parse::<i64>() { return Value::Num(n); } } } } Value::None }
-"#;
+pub fn builtin_gui_notify(text: Value, title: Value) -> Value { if let (Value::Str(tx), Value::Str(ti)) = (text, title) { Command::new("zenity").arg("--notification").arg("--text").arg(tx).arg("--title").arg(ti).spawn().ok(); } Value::None }
+pub fn builtin_gui_file_save(title: Value) -> Value { if let Value::Str(t) = title { if let Ok(out) = Command::new("zenity").arg("--file-selection").arg("--save").arg("--confirm-overwrite").arg("--title").arg(t).output() { if out.status.success() { return Value::Str(String::from_utf8_lossy(&out.stdout).trim().to_string()); } } } Value::None }
+"##;
 
-const JSON_RUNTIME: &str = r#"
+const JSON_RUNTIME: &str = r##"
 pub fn builtin_json_parse(v: Value) -> Value {
     if let Value::Str(s) = v {
         let chars: Vec<char> = s.chars().collect();
@@ -630,4 +727,74 @@ pub fn builtin_json_parse(v: Value) -> Value {
     }
     Value::None
 }
-"#;
+"##;
+
+const BIT_RUNTIME: &str = r##"
+pub fn builtin_bit_and(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64() & v2.as_i64()) }
+pub fn builtin_bit_or(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64() | v2.as_i64()) }
+pub fn builtin_bit_xor(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64() ^ v2.as_i64()) }
+pub fn builtin_bit_not(v: Value) -> Value { Value::Num(!v.as_i64()) }
+pub fn builtin_bit_shl(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64() << v2.as_i64()) }
+pub fn builtin_bit_shr(v1: Value, v2: Value) -> Value { Value::Num(v1.as_i64() >> v2.as_i64()) }
+"##;
+
+const COLOR_RUNTIME: &str = r##"
+pub fn builtin_color_rgb(r: Value, g: Value, b: Value) -> Value {
+    let rs = format!("{:02x}", r.as_i64() % 256);
+    let gs = format!("{:02x}", g.as_i64() % 256);
+    let bs = format!("{:02x}", b.as_i64() % 256);
+    Value::Str(format!("#{}{}{}", rs, gs, bs))
+}
+pub fn builtin_color_hex(v: Value) -> Value { if let Value::Str(s) = v { if s.starts_with("#") { return Value::Str(s); } return Value::Str(format!("#{}", s)); } Value::None }
+pub fn builtin_color_blend(c1: Value, c2: Value) -> Value { 
+    fn parse_hex(s: &str) -> (i64, i64, i64) {
+        let s = s.trim_start_matches('#');
+        let r = i64::from_str_radix(&s[0..2], 16).unwrap_or(0);
+        let g = i64::from_str_radix(&s[2..4], 16).unwrap_or(0);
+        let b = i64::from_str_radix(&s[4..6], 16).unwrap_or(0);
+        (r, g, b)
+    }
+    if let (Value::Str(s1), Value::Str(s2)) = (c1, c2) {
+        if s1.len() >= 6 && s2.len() >= 6 {
+            let (r1, g1, b1) = parse_hex(&s1);
+            let (r2, g2, b2) = parse_hex(&s2);
+            let r = (r1 + r2) / 2;
+            let g = (g1 + g2) / 2;
+            let b = (b1 + b2) / 2;
+            return Value::Str(format!("#{:02x}{:02x}{:02x}", r, g, b));
+        }
+    }
+    Value::None
+}
+pub fn builtin_color_to_rgb(v: Value) -> Value {
+    if let Value::Str(s) = v {
+        let s = s.trim_start_matches('#');
+        if s.len() >= 6 {
+            let r = i64::from_str_radix(&s[0..2], 16).unwrap_or(0);
+            let g = i64::from_str_radix(&s[2..4], 16).unwrap_or(0);
+            let b = i64::from_str_radix(&s[4..6], 16).unwrap_or(0);
+            let arr = Rc::new(RefCell::new(vec![Value::Num(r), Value::Num(g), Value::Num(b)]));
+            return Value::Array(arr);
+        }
+    }
+    Value::Array(Rc::new(RefCell::new(Vec::new())))
+}
+pub fn builtin_color_to_hex(v: Value) -> Value {
+    if let Value::Array(a) = v {
+        let b = a.borrow();
+        if b.len() >= 3 {
+            let r = b[0].as_i64() % 256;
+            let g = b[1].as_i64() % 256;
+            let b = b[2].as_i64() % 256;
+            return Value::Str(format!("#{:02x}{:02x}{:02x}", r, g, b));
+        }
+    }
+    Value::None
+}
+"##;
+
+const LOGIC_RUNTIME: &str = r##"
+pub fn builtin_logic_and(v1: Value, v2: Value) -> Value { Value::Num(if v1.is_truthy() && v2.is_truthy() { 1 } else { 0 }) }
+pub fn builtin_logic_or(v1: Value, v2: Value) -> Value { Value::Num(if v1.is_truthy() || v2.is_truthy() { 1 } else { 0 }) }
+pub fn builtin_logic_not(v: Value) -> Value { Value::Num(if v.is_truthy() { 0 } else { 1 }) }
+"##;

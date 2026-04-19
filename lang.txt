@@ -1,7 +1,8 @@
-VPL Language Specification & Manual (v1.3.5)
+VPL Language Specification & Manual (v1.4.0)
 ===========================================
 
-VPL (Visual Programming Language) is a professional systems language designed for high-performance applications on Linux. It compiles to native machine code via LLVM and features intelligent Tree-Shaking to minimize binary size.
+VPL (Visual Programming Language) is a high-performance, statically compiled programming language for Linux.
+It compiles to native machine code via LLVM and features intelligent Tree-Shaking to minimize binary size.
 
 1. BASIC SYNTAX
 ---------------
@@ -40,10 +41,12 @@ VPL (Visual Programming Language) is a professional systems language designed fo
 - gui_input(text, title)   : Text input dialog
 - gui_password(title)      : Password input dialog
 - gui_file(title)          : File selection
+- gui_file_save(title)     : Save file selection
 - gui_calendar(title)      : Date selection
 - gui_color(title)         : Color picker
 - gui_list(title, col, arr): Select from a list of items
 - gui_scale(title, text, min, max, val, step): Number slider
+- gui_notify(text, title)  : Passive notification
 
 [File System]
 - fs_list(path), fs_read(path), fs_write(path, str), fs_append(path, str)
@@ -52,16 +55,41 @@ VPL (Visual Programming Language) is a professional systems language designed fo
 
 [Strings & Data]
 - str_len(s), str_at(s, i), str_upper(s), str_lower(s), str_trim(s)
+- str_trim_start(s), str_trim_end(s), str_repeat(s, n), str_is_num(s)
+- str_pad_left(s, n, char), str_pad_right(s, n, char)
+- str_char_code(s, i), str_from_char_code(n)
 - str_split(s, sep), str_join(arr, sep), str_replace(s, o, n)
-- str_starts_with(s, p), str_ends_with(s, p), str_repeat(s, n), str_is_num(s)
+- str_starts_with(s, p), str_ends_with(s, p)
+- str_index_of(s, sub), str_last_index_of(s, sub)
 - type_of(val), json_stringify(val), json_parse(json_str)
 
+[Arrays]
+- arr_len(a), arr_push(a, v), arr_pop(a), arr_remove(a, i), arr_insert(a, i, v)
+- arr_contains(a, v), arr_reverse(a), arr_sort(a), arr_slice(a, start, end)
+- arr_find(a, v)
+
 [System & Math]
-- sys_exec(cmd), sys_shell(cmd), sys_env(name), sys_args()
+- sys_exec(cmd), sys_shell(cmd), sys_env(name), sys_args(), sys_env_set(n, v)
 - sys_hostname(), sys_username(), sys_user_home(), sys_os(), sys_pid()
-- sys_time(), sys_exit(code), sys_sleep(ms)
+- sys_time(), sys_exit(code), sys_sleep(ms), sys_wait(ms)
 - math_rand(min, max), math_pow(b, e), math_sqrt(n), math_abs(n)
-- math_log(n), math_sin(n), math_cos(n), math_floor(n), math_ceil(n), math_round(n)
+- math_log(n), math_log10(n), math_sin(n), math_cos(n), math_tan(n)
+- math_asin(n), math_acos(n), math_atan(n), math_floor(n), math_ceil(n)
+- math_round(n), math_cbrt(n), math_pi(), math_e(), math_tau()
+- math_hypot(a, b), math_exp(n), math_deg_to_rad(n), math_rad_to_deg(n)
+- math_gcd(a, b), math_lcm(a, b), math_factorial(n)
+
+[Networking]
+- net_get(url), net_post(url, body), net_download(url, path), net_ping(host)
+- net_ping_ms(host), net_serve(port), net_ip(), net_interfaces(), net_uptime()
+- net_hostname()
+
+[Logic & Colors]
+- logic_and(a, b), logic_or(a, b), logic_not(a)
+- bit_and(a, b), bit_or(a, b), bit_xor(a, b), bit_not(a)
+- bit_shl(a, b), bit_shr(a, b)
+- color_rgb(r, g, b), color_hex(str), color_blend(c1, c2)
+- color_to_rgb(hex), color_to_hex(rgb)
 
 4. COMPILER USAGE
 -----------------

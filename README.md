@@ -1,4 +1,4 @@
-# VPL Systems - Optimized Native Compiler (v1.3.5)
+# VPL Systems - Optimized Native Compiler (v1.4.0)
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language designed for Linux (Solus) environments. It features a modern syntax, an extensive standard library, and a professional-grade compiler that produces tiny, standalone native binaries.
 
@@ -8,10 +8,11 @@ VPL (Visual Programming Language) is a high-performance, statically compiled pro
 - **Smart Tree-Shaking (DCE)**: Only includes used runtime modules (Core, GUI, Network, etc.) in the final binary to keep file sizes minimal.
 - **Dual Graphics Engine**:
   - **TUI**: Advanced terminal interfaces using ANSI escape sequences (windows, buttons, menus).
-  - **GUI**: Modern system dialogs (calendars, sliders, lists, color pickers) via Zenity integration.
+  - **GUI**: Modern system dialogs (calendars, sliders, lists, color pickers, notifications) via Zenity integration.
 - **Industrial Compiler Logger**: Animated, threaded, and detailed build logs with microsecond-precision diagnostics.
 - **Cross-Platform Readiness**: Native support for building Windows `.exe` files from Linux using the `-w` flag.
-- **Rich Standard Library**: Built-in support for JSON (nested parsing/stringifying), Filesystem, Networking (HTTP/TCP), and advanced Math.
+- **Rich Standard Library**: Built-in support for JSON, Filesystem, Advanced Networking (HTTP/TCP/IP), Logic/Bitwise operations, and specialized Math (GCD, LCM, Trig).
+- **Color Tools**: Built-in functions for RGB/HEX manipulation and color blending.
 
 ## 🛠 Prerequisites
 
@@ -33,8 +34,8 @@ To use the VPL compiler, your system needs:
 
 ## 💻 Usage
 
-### Interactive Selector
-Launch the TUI file explorer to browse and build your scripts visually:
+### Interactive Selector (Build & Run)
+Launch the TUI file explorer to browse, build, and run your scripts visually:
 ```bash
 ./vpl tui
 ```
@@ -54,21 +55,19 @@ Launch the TUI file explorer to browse and build your scripts visually:
 ## 📝 Syntax at a Glance
 
 ```vpl
-// Example: Modern VPL Script
-func greet(name) {
-    say "Hello, " + name + "!"
+// Example: Modern VPL Script v1.4.0
+func diagnose() {
+    set ip = net_ip()
+    set host = net_hostname()
+    say "Host: " + host + " (IP: " + ip + ")"
 }
 
-set users = ["Alice", "Bob", "Charlie"]
-for user in users {
-    greet(user)
+set ping_time = net_ping_ms("8.8.8.8")
+if logic_and(ping_time > 0, ping_time < 100) {
+    gui_notify("Network is fast!", "VPL Status")
 }
 
-set choice = gui_question("Would you like to open the calendar?", "VPL")
-if choice == 1 {
-    set date = gui_calendar("Select a date")
-    gui_msg("You selected: " + date, "VPL Result")
-}
+diagnose()
 ```
 
 ## ⚖️ License

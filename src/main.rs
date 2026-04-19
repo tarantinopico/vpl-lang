@@ -29,7 +29,7 @@ impl Logger {
     fn header(&self, file: &str, target: &str, target_os: &str) {
         let rustc_ver = Command::new("rustc").arg("--version").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("unknown".to_string());
         println!("\n\x1b[1;36m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-        println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- INDUSTRIAL EDITION v1.3.5\x1b[0m            \x1b[1;36m│\x1b[0m");
+        println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- INDUSTRIAL EDITION v1.4.0\x1b[0m            \x1b[1;36m│\x1b[0m");
         println!("\x1b[1;36m├──────────────────────────────────────────────────────────┤\x1b[0m");
         println!("\x1b[1;36m│\x1b[0m \x1b[1;32m SOURCE:\x1b[0m {:<46} \x1b[1;36m│\x1b[0m", file);
         println!("\x1b[1;36m│\x1b[0m \x1b[1;32m BINARY:\x1b[0m {:<46} \x1b[1;36m│\x1b[0m", target);
@@ -100,19 +100,19 @@ fn check_dependencies() -> Vec<String> {
 
 fn print_usage() {
     println!("\n\x1b[1;36m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v1.3.5\x1b[0m            \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v1.4.0\x1b[0m            \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m├──────────────────────────────────────────────────────────┤\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mPOUŽITÍ:\x1b[0m                                             \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m    vpl build <soubor.vpl> [volby]                      \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m    vpl tui                  Spustí interaktivní výběr  \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mUSAGE:\x1b[0m                                               \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m    vpl build <file.vpl> [options]                      \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m    vpl tui                  Start interactive selector \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m                                                          \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mVOLBY:\x1b[0m                                               \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m    -o <jmeno>   Nastaví jméno výstupní binárky        \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m    -w           Kompilovat pro Windows (.exe)         \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mOPTIONS:\x1b[0m                                             \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m    -o <name>    Set output binary name                \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m    -w           Compile for Windows (.exe)            \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m                                                          \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mPŘÍKLADY:\x1b[0m                                            \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mEXAMPLES:\x1b[0m                                            \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m    ./vpl tui                                           \x1b[1;36m│\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m    ./vpl build program.vpl -o moje_hra -w              \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m    ./vpl build program.vpl -o my_app -w                \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m└──────────────────────────────────────────────────────────┘\x1b[0m\n");
 }
 
@@ -260,7 +260,14 @@ fn run_tui_mode() {
                     print!("\x1b[2J\x1b[H");
                     let stem = full.file_stem().unwrap().to_str().unwrap();
                     build_vpl(full.to_str().unwrap(), stem, false);
-                    println!("\x1b[1mStiskněte Enter pro návrat do výběru...\x1b[0m");
+                    
+                    if Path::new(stem).exists() {
+                        println!("\n\x1b[1;32m  ➤ RUNNING BINARY:\x1b[0;37m ./{}\x1b[0m\n", stem);
+                        let mut run_cmd = Command::new(format!("./{}", stem)).spawn().expect("Failed to run binary");
+                        let _ = run_cmd.wait();
+                    }
+
+                    println!("\n\x1b[1;36m  Build Cycle Complete.\x1b[0m Press Enter to return...");
                     let _ = io::stdin().read(&mut [0u8; 1]);
                     let _ = Command::new("stty").arg("raw").arg("-echo").spawn().unwrap().wait();
                 }

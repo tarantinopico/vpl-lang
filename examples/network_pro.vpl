@@ -1,0 +1,45 @@
+// VPL v1.4.0 - Network & System Professional Demo
+
+say "=== VPL NETWORK & SYSTEM DIAGNOSTICS ==="
+
+// System Info
+say "Host Name: " + net_hostname()
+say "User: " + sys_username()
+say "OS: " + sys_os()
+say "Uptime: " + net_uptime()
+
+// Network Diagnostics
+say "\nChecking Public IP..."
+set my_ip = net_ip()
+say "Your Public IP: " + my_ip
+
+say "\nNetwork Interfaces:"
+say net_interfaces()
+
+set target = "8.8.8.8"
+say "\nPinging " + target + "..."
+set latency = net_ping_ms(target)
+if latency > -1 {
+    say "Latency: " + num_to_str(latency) + " ms"
+} else {
+    say "Ping failed!"
+}
+
+// Math & Logic
+say "\n=== MATHEMATICAL PRECISION ==="
+set r = 10
+set area = math_pi() * (r * r)
+say "Area of circle (r=10): ~" + num_to_str(area)
+
+set a = 48
+set b = 18
+say "GCD of " + num_to_str(a) + " and " + num_to_str(b) + " is: " + num_to_str(math_gcd(a, b))
+
+// Colors
+set blue = color_rgb(0, 0, 255)
+set white = "#ffffff"
+set light_blue = color_blend(blue, white)
+say "\nColor blending: Blue + White = " + light_blue
+
+say "\nDiagnostics Complete."
+gui_notify("VPL Network Diagnostics finished successfully.", "VPL System")

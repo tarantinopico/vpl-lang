@@ -1,0 +1,26 @@
+func main() {
+    gui_window(400, 300, "My App")
+    set running = 1
+    
+    while running == 1 {
+        gui_clear_screen("#2c3e50")
+        gui_label(150, 100, "VPL App Engine", "#ffffff")
+        gui_button(125, 150, 150, 40, "Close App", "#c0392b", 0)
+        
+        set ev = gfx_poll()
+        if ev != "none" {
+            if ev["type"] == "click" {
+                if gui_is_inside(ev["x"], ev["y"], 125, 150, 150, 40) {
+                    set running = 0
+                }
+            }
+            if ev["type"] == "key" {
+                if ev["code"] == 24 { // q
+                    set running = 0
+                }
+            }
+        }
+        sys_sleep(10)
+    }
+    gui_close()
+}

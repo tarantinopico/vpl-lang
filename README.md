@@ -1,4 +1,4 @@
-# VPL Systems - Optimized Native Compiler (v1.9.0)
+# VPL Systems - Optimized Native Compiler (v2.0.0)
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language designed for Linux environments. It features a modern syntax, an extensive standard library, and a professional-grade compiler that produces tiny, standalone native binaries.
 

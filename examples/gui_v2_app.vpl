@@ -1,0 +1,72 @@
+func main() {
+    gui_window(600, 400, "VPL Professional GUI v2.0.0")
+    
+    set running = 1
+    set bg_color = "#2c3e50"
+    
+    // GUI State
+    set state = map_new()
+    map_set(state, "input_text", "Tom")
+    map_set(state, "input_focus", 0)
+    map_set(state, "status", "VPL 2.0.0 Ready.")
+
+    while running == 1 {
+        gui_clear_screen(bg_color)
+        
+        gui_label(50, 40, "VPL PROFESSIONAL ENGINE v2.0.0", "#ecf0f1")
+        gui_label(50, 70, "Log: " + map_get(state, "status"), "#f1c40f")
+        
+        gui_label(50, 110, "Zadejte jmeno:", "#bdc3c7")
+        gui_input_draw(50, 130, 300, 40, map_get(state, "input_text"), map_get(state, "input_focus"))
+        
+        gui_button(50, 200, 150, 40, "Pozdravit", "#27ae60", 0)
+        gui_button(210, 200, 100, 40, "Konec", "#c0392b", 0)
+        
+        gui_button(50, 260, 200, 40, "Kopirovat do schranky", "#8e44ad", 0)
+
+        set ev = gfx_poll()
+        if ev != "none" {
+            if ev["type"] == "click" {
+                set mx = ev["x"]
+                set my = ev["y"]
+                
+                // Focus logic
+                map_set(state, "input_focus", 0)
+                if gui_is_inside(mx, my, 50, 130, 300, 40) {
+                    map_set(state, "input_focus", 1)
+                    map_set(state, "status", "Input focused")
+                }
+                
+                // Pozdravit Button
+                if gui_is_inside(mx, my, 50, 200, 150, 40) {
+                    set txt = map_get(state, "input_text")
+                    map_set(state, "status", "Ahoj, " + txt + "!")
+                }
+                
+                // Konec Button
+                if gui_is_inside(mx, my, 210, 200, 100, 40) {
+                    set running = 0
+                }
+                
+                // Copy Button
+                if gui_is_inside(mx, my, 50, 260, 200, 40) {
+                    sys_clipboard_set(map_get(state, "input_text"))
+                    map_set(state, "status", "Zkopirovano do clipboardu.")
+                }
+            }
+            
+            if ev["type"] == "key" {
+                if map_get(state, "input_focus") == 1 {
+                    set old_text = map_get(state, "input_text")
+                    set new_text = gui_input_process_event(old_text, ev)
+                    map_set(state, "input_text", new_text)
+                }
+            }
+        }
+        
+        sys_sleep(10)
+    }
+    
+    gui_close()
+    say "VPL 2.0.0 finished."
+}

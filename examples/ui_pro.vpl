@@ -1,0 +1,33 @@
+func main() {
+    tui_init()
+    tui_hide_cursor()
+    tui_clear()
+    
+    tui_set_color(7, 4) // White on blue
+    tui_fill(1, 1, 80, 24, " ")
+    
+    tui_set_color(15, 4) // Bright white on blue
+    tui_draw_window(10, 5, 60, 15, "VPL PRO UI")
+    tui_set_color(0, 7) // Black on white
+    tui_fill(11, 6, 58, 13, " ")
+    
+    tui_print(15, 8, "Welcome to the Professional TUI Demo.")
+    tui_print(15, 10, "This uses the advanced terminal features.")
+    
+    tui_set_color(15, 1) // White on red
+    tui_draw_button(25, 15, 30, 3, "[ PRESS ENTER TO EXIT ]")
+    
+    set running = 1
+    while running == 1 {
+        set key = tui_read_key()
+        if key == "enter" { set running = 0 }
+        if key == "esc" { set running = 0 }
+        if key == "q" { set running = 0 }
+        sys_sleep(50)
+    }
+    
+    tui_show_cursor()
+    tui_reset_color()
+    tui_clear()
+    tui_restore()
+}

@@ -45,15 +45,14 @@ impl Logger {
 
     fn header(&self, file: &str, target: &str, target_os: &str) {
         if self.silent { return; }
-        let rustc_ver = Command::new("rustc").arg("--version").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("unknown".to_string());
-        println!("\n\x1b[1;36m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-        println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- INDUSTRIAL EDITION v1.9.0\x1b[0m            \x1b[1;36m│\x1b[0m");
-        println!("\x1b[1;36m├──────────────────────────────────────────────────────────┤\x1b[0m");
-        println!("\x1b[1;36m│\x1b[0m \x1b[1;32m SOURCE:\x1b[0m {:<46} \x1b[1;36m│\x1b[0m", file);
-        println!("\x1b[1;36m│\x1b[0m \x1b[1;32m BINARY:\x1b[0m {:<46} \x1b[1;36m│\x1b[0m", target);
-        println!("\x1b[1;36m│\x1b[0m \x1b[1;32m TARGET:\x1b[0m {:<46} \x1b[1;36m│\x1b[0m", target_os);
-        println!("\x1b[1;36m│\x1b[0m \x1b[1;32m BACKEND:\x1b[0m {:<45} \x1b[1;36m│\x1b[0m", rustc_ver);
-        println!("\x1b[1;36m└──────────────────────────────────────────────────────────┘\x1b[0m\n");
+        let _rustc_ver = Command::new("rustc").arg("--version").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("unknown".to_string());
+        println!("\n\x1b[1;36m┌──────────────────────────────────────────────────┐\x1b[0m");
+        println!("\x1b[1;36m│\x1b[0m \x1b[1;37mVPL SYSTEMS \x1b[0;34mv2.0.0\x1b[0m                             \x1b[1;36m│\x1b[0m");
+        println!("\x1b[1;36m├──────────────────────────────────────────────────┤\x1b[0m");
+        println!("\x1b[1;36m│\x1b[0m \x1b[1;32m SRC:\x1b[0m {:<43} \x1b[1;36m│\x1b[0m", file);
+        println!("\x1b[1;36m│\x1b[0m \x1b[1;32m BIN:\x1b[0m {:<43} \x1b[1;36m│\x1b[0m", target);
+        println!("\x1b[1;36m│\x1b[0m \x1b[1;32m TRG:\x1b[0m {:<43} \x1b[1;36m│\x1b[0m", target_os);
+        println!("\x1b[1;36m└──────────────────────────────────────────────────┘\x1b[0m\n");
     }
 
     fn start_task(&self, phase: &str) {
@@ -123,7 +122,7 @@ fn check_dependencies() -> Vec<String> {
 
 fn print_usage() {
     println!("\n\x1b[1;36m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v1.9.0\x1b[0m            \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v2.0.0\x1b[0m            \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m├──────────────────────────────────────────────────────────┤\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mUSAGE:\x1b[0m                                               \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m    vpl build <file.vpl> [options]                      \x1b[1;36m│\x1b[0m");
@@ -181,16 +180,16 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
     // 1. Bootstrap
     logger.start_task("BOOTSTRAP");
     let start = Instant::now();
-    let mut content = match fs::read_to_string(input_path) {
+    let main_source = match fs::read_to_string(input_path) {
         Ok(c) => c,
         Err(e) => { logger.error("BOOTSTRAP", &format!("Read failed: {}", e)); return; }
     };
+    let mut content = main_source.clone();
     
     // Load libraries intelligently
     let mut available_libs = std::collections::HashMap::new();
     let mut dirs_to_check = vec![env::current_dir().unwrap(), get_lib_dir()];
     
-    // Also check for .vpl and .vplib subdirectories in current dir
     let vpl_dir = env::current_dir().unwrap().join(".vpl");
     if vpl_dir.is_dir() { dirs_to_check.push(vpl_dir); }
     let vplib_dir = env::current_dir().unwrap().join(".vplib");
@@ -220,8 +219,8 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
         }
     }
 
-    let mut included_files = std::collections::HashSet::new();
-    let mut libs_loaded = 0;
+    let mut included_files = Vec::new();
+    let mut included_set = std::collections::HashSet::new();
     let mut added_something = true;
     
     while added_something {
@@ -229,7 +228,7 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
         let mut to_include = Vec::new();
         
         for (path, (funcs, _)) in &available_libs {
-            if !included_files.contains(path) {
+            if !included_set.contains(path) {
                 let mut is_needed = false;
                 for func in funcs {
                     let call_pattern = format!("{}(", func);
@@ -249,20 +248,35 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
             if let Some((funcs, lib_content)) = available_libs.get(&path) {
                 content.push_str("\n");
                 content.push_str(lib_content);
-                included_files.insert(path.clone());
-                libs_loaded += 1;
+                included_set.insert(path.clone());
+                included_files.push((path.clone(), funcs.clone(), lib_content.len()));
                 added_something = true;
-                if options.verbose && !options.silent {
-                    logger.detail("Library", &format!("{:<20} (provides: {})", path.file_name().unwrap().to_str().unwrap(), funcs.join(", ")));
-                }
             }
         }
     }
     
     let dur = start.elapsed();
-    logger.complete_step("BOOTSTRAP", &format!("Loaded {} bytes", content.len()), dur);
-    if libs_loaded > 0 && !options.silent { 
-        logger.detail("Status", &format!("Injected {} .vplib files intelligently", libs_loaded)); 
+    logger.complete_step("BOOTSTRAP", "Environment prepared", dur);
+    
+    if !options.silent {
+        let main_file_name = Path::new(input_path).file_name().unwrap().to_str().unwrap();
+        let main_size = main_source.len() as f64 / 1024.0;
+        
+        logger.detail("Project", &format!("{:<20} [{:.2} KB]", main_file_name, main_size));
+        for (i, (path, funcs, size)) in included_files.iter().enumerate() {
+            let is_last = i == included_files.len() - 1;
+            let prefix = if is_last { "└──" } else { "├──" };
+            let lib_name = path.file_name().unwrap().to_str().unwrap();
+            let lib_size = *size as f64 / 1024.0;
+            let func_list = if funcs.len() > 2 {
+                format!("{}, ...", funcs[..2].join(", "))
+            } else {
+                funcs.join(", ")
+            };
+            
+            println!("     \x1b[1;34m{}\x1b[0m \x1b[0;37mLib: {:<12} [{:.2} KB] \x1b[0;90m({}) \x1b[0m", 
+                prefix, lib_name, lib_size, func_list);
+        }
     }
 
     // 2. Tokenization
@@ -270,8 +284,8 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
     let start = Instant::now();
     let tokens = lexer::tokenize(&content);
     let dur = start.elapsed();
-    logger.complete_step("SCANNER", "Lexical analysis complete", dur);
-    if options.verbose || !run_after { logger.detail("Tokens", &format!("Total identified: {}", tokens.len())); }
+    logger.complete_step("SCANNER", "Lexical analysis", dur);
+    if (options.verbose || !run_after) && !options.silent { logger.detail("Tokens", &format!("Count: {}", tokens.len())); }
 
     // 3. Parsing
     logger.start_task("PARSER");
@@ -282,18 +296,16 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
         Err(e) => { logger.error("PARSER", &format!("Syntax error: {}", e)); return; }
     };
     let dur = start.elapsed();
-    logger.complete_step("PARSER", "AST construction successful", dur);
+    logger.complete_step("PARSER", "AST construction", dur);
 
     // 4. Optimization
     logger.start_task("OPTIMIZER");
     let start = Instant::now();
     let (rust_code, modules) = compiler::compile(&ast);
     let dur = start.elapsed();
-    logger.complete_step("OPTIMIZER", &format!("Active segments: {}", modules.len()), dur);
+    logger.complete_step("OPTIMIZER", &format!("Segments: {}", modules.len()), dur);
     if (!run_after || options.verbose) && !options.silent { 
-        for m in &modules {
-            logger.detail("Segment", m);
-        }
+        logger.detail("Modules", &modules.join(", "));
     }
 
     // 5. Codegen
@@ -305,18 +317,30 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
         return;
     }
     let dur = start.elapsed();
-    logger.complete_step("CODEGEN", "Memory sync complete", dur);
+    logger.complete_step("CODEGEN", "Source ready", dur);
 
     // 6. Native compilation
     logger.start_task("LINKER");
     let start = Instant::now();
     let mut cmd = Command::new("rustc");
     cmd.arg(&temp_rs);
+    
+    if !options.silent {
+        logger.detail("Backend", "rustc (LLVM)");
+        logger.detail("Mode", if options.release { "Release (O3)" } else { "Debug (O0)" });
+    }
+
     if options.release { cmd.arg("-C").arg("opt-level=3").arg("-C").arg("debuginfo=0"); }
     else { cmd.arg("-C").arg("opt-level=0").arg("-C").arg("debuginfo=2"); }
-    if options.strip && !options.win_mode { cmd.arg("-C").arg("link-arg=-s"); }
+    if options.strip && !options.win_mode { 
+        cmd.arg("-C").arg("link-arg=-s"); 
+        if !options.silent { logger.detail("Action", "Stripping symbols"); }
+    }
     cmd.arg("-o").arg(&final_bin);
-    if options.win_mode { cmd.arg("--target").arg("x86_64-pc-windows-gnu"); }
+    if options.win_mode { 
+        cmd.arg("--target").arg("x86_64-pc-windows-gnu"); 
+        if !options.silent { logger.detail("Action", "Cross-compiling to Windows"); }
+    }
     
     let output = if options.verbose { 
         cmd.status().map(|s| (s, String::new()))
@@ -329,18 +353,18 @@ fn build_vpl(input_path: &str, output_name: &str, options: BuildOptions, run_aft
     match output {
         Ok((s, _stderr)) if s.success() => {
             let dur = start.elapsed();
-            logger.complete_step("LINKER", "Binary linked and optimized", dur);
+            logger.complete_step("LINKER", "Binary linked", dur);
             if run_after {
                 logger.stop_spinner();
                 if !options.silent {
-                    println!("\n\x1b[1;32m  ➤ RUNNING SCRIPT:\x1b[0;37m ./{}\x1b[0m\n", final_bin);
+                    println!("\x1b[1;32m  ➤ RUNNING:\x1b[0;37m ./{}\x1b[0m\n", final_bin);
                 }
                 let mut run_cmd = Command::new(format!("./{}", final_bin)).spawn().expect("Failed to run binary");
                 let _ = run_cmd.wait();
                 let _ = fs::remove_file(&final_bin);
             } else {
                 let size = fs::metadata(&final_bin).map(|m| m.len()).unwrap_or(0);
-                logger.detail("Binary Size", &format!("{:.2} KB", size as f64 / 1024.0));
+                logger.detail("Result", &format!("{:<20} [{:.2} KB]", final_bin, size as f64 / 1024.0));
                 logger.success(&final_bin);
             }
         }
@@ -381,7 +405,7 @@ fn run_tui_mode() {
 
         print!("\x1b[2J\x1b[H");
         println!("\x1b[1;34m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-        println!("\x1b[1;34m│\x1b[0m  \x1b[1;37mVPL PROFESSIONAL NAVIGATOR \x1b[0;34mv1.9.0\x1b[0m                \x1b[1;34m│\x1b[0m");
+        println!("\x1b[1;34m│\x1b[0m  \x1b[1;37mVPL PROFESSIONAL NAVIGATOR \x1b[0;34mv2.0.0\x1b[0m                \x1b[1;34m│\x1b[0m");
         println!("\x1b[1;34m├──────────────────────────────────────────────────────────┤\x1b[0m");
         println!("\x1b[1;34m│\x1b[0m \x1b[1;32m PATH:\x1b[0m {:<50} \x1b[1;34m│\x1b[0m", path.to_str().unwrap().chars().take(50).collect::<String>());
         println!("\x1b[1;34m├──────────────────────────────────────────────────────────┤\x1b[0m");

@@ -418,6 +418,8 @@ fn compile_expr(expr: &Expr) -> String {
                 
                 // System
                 "sys_exec" => format!("builtin_sys_exec({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "sys_clipboard_get" => "builtin_sys_clipboard_get()".to_string(),
+                "sys_clipboard_set" => format!("builtin_sys_clipboard_set({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_env" => format!("builtin_sys_env({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_env_set" => format!("builtin_sys_env_set({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "sys_hostname" => "builtin_sys_hostname()".to_string(),
@@ -485,6 +487,7 @@ fn compile_expr(expr: &Expr) -> String {
                 "gfx_rect" => format!("builtin_gfx_rect({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
                 "gfx_line" => format!("builtin_gfx_line({}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string())),
                 "gfx_text" => format!("builtin_gfx_text({}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string())),
+                "gfx_text_width" => format!("builtin_gfx_text_width({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "gfx_poll" => "builtin_gfx_poll()".to_string(),
                 "gfx_pixel" => format!("builtin_gfx_pixel({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
 
@@ -538,6 +541,7 @@ extern "C" {
     fn XDrawLine(d: *mut std::ffi::c_void, w: u64, gc: *mut std::ffi::c_void, x1: i32, y1: i32, x2: i32, y2: i32) -> i32;
     fn XDrawString(d: *mut std::ffi::c_void, w: u64, gc: *mut std::ffi::c_void, x: i32, y: i32, s: *const i8, len: i32) -> i32;
     fn XDefaultRootWindow(d: *mut std::ffi::c_void) -> u64;
+    fn XLookupString(ev: *mut [u8; 192], buf: *mut u8, len: i32, keysym: *mut u64, status: *mut std::ffi::c_void) -> i32;
     fn XFlush(d: *mut std::ffi::c_void) -> i32;
     fn XPending(d: *mut std::ffi::c_void) -> i32;
     fn XNextEvent(d: *mut std::ffi::c_void, ev: *mut [u8; 192]) -> i32;
@@ -554,7 +558,8 @@ pub fn builtin_gfx_open(w_v: Value, h_v: Value, title_v: Value) -> Value {
         if GFX_DISPLAY.is_null() { return Value::Num(0); }
         let root = XDefaultRootWindow(GFX_DISPLAY);
         GFX_WINDOW = XCreateSimpleWindow(GFX_DISPLAY, root, 0, 0, w_v.as_i64() as u32, h_v.as_i64() as u32, 1, 0, 0);
-        XSelectInput(GFX_DISPLAY, GFX_WINDOW, 1 | 4 | 32768); // Exposure | ButtonPress | KeyPress
+        XSelectInput(GFX_DISPLAY, GFX_WINDOW, 1 | 4 | 32768); // KeyPress | ButtonPress | Exposure
+        let title = CString::new(title_v.to_string()).unwrap();
         XMapWindow(GFX_DISPLAY, GFX_WINDOW);
         GFX_GC = XCreateGC(GFX_DISPLAY, GFX_WINDOW, 0, ptr::null());
         XFlush(GFX_DISPLAY);
@@ -579,7 +584,7 @@ pub fn builtin_gfx_clear(color: Value) -> Value {
     unsafe {
         if GFX_DISPLAY.is_null() { return Value::None; }
         XSetForeground(GFX_DISPLAY, GFX_GC, parse_color(color));
-        XFillRectangle(GFX_DISPLAY, GFX_WINDOW, GFX_GC, 0, 0, 2000, 2000); // Rough clear
+        XFillRectangle(GFX_DISPLAY, GFX_WINDOW, GFX_GC, 0, 0, 4000, 4000); 
         XFlush(GFX_DISPLAY);
     }
     Value::None
@@ -616,6 +621,10 @@ pub fn builtin_gfx_text(x: Value, y: Value, text: Value, color: Value) -> Value 
     Value::None
 }
 
+pub fn builtin_gfx_text_width(text: Value) -> Value {
+    Value::Num((text.to_string().len() as i64) * 7)
+}
+
 pub fn builtin_gfx_poll() -> Value {
     unsafe {
         if GFX_DISPLAY.is_null() { return Value::None; }
@@ -627,14 +636,23 @@ pub fn builtin_gfx_poll() -> Value {
             
             if type_ == 2 { // KeyPress
                 map.borrow_mut().insert("type".to_string(), Value::Str("key".to_string()));
-                let keycode = ev[84]; // Simple keycode offset
-                map.borrow_mut().insert("code".to_string(), Value::Num(keycode as i64));
+                let mut buf = [0u8; 32];
+                let mut keysym: u64 = 0;
+                let n = XLookupString(&mut ev, buf.as_mut_ptr(), 32, &mut keysym, ptr::null_mut());
+                let key_str = if n > 0 { 
+                    String::from_utf8_lossy(&buf[..n as usize]).to_string() 
+                } else { 
+                    "".to_string() 
+                };
+                map.borrow_mut().insert("key".to_string(), Value::Str(key_str));
+                map.borrow_mut().insert("code".to_string(), Value::Num(ev[84] as i64));
                 return Value::Map(map);
             }
             if type_ == 4 { // ButtonPress
                 map.borrow_mut().insert("type".to_string(), Value::Str("click".to_string()));
-                let x = i32::from_ne_bytes([ev[32], ev[33], ev[34], ev[35]]);
-                let y = i32::from_ne_bytes([ev[36], ev[37], ev[38], ev[39]]);
+                // Correct 64-bit offsets for XButtonEvent (x=64, y=68)
+                let x = i32::from_ne_bytes([ev[64], ev[65], ev[66], ev[67]]);
+                let y = i32::from_ne_bytes([ev[68], ev[69], ev[70], ev[71]]);
                 map.borrow_mut().insert("x".to_string(), Value::Num(x as i64));
                 map.borrow_mut().insert("y".to_string(), Value::Num(y as i64));
                 return Value::Map(map);
@@ -905,6 +923,8 @@ pub fn builtin_math_dist(x1: Value, y1: Value, x2: Value, y2: Value) -> Value {
 
 const SYS_RUNTIME: &str = r##"
 pub fn builtin_sys_exec(cmd: Value) -> Value { if let Value::Str(c) = cmd { if let Ok(o) = Command::new("sh").arg("-c").arg(c).output() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } } Value::None }
+pub fn builtin_sys_clipboard_get() -> Value { if let Ok(o) = Command::new("xclip").arg("-selection").arg("clipboard").arg("-o").output() { return Value::Str(String::from_utf8_lossy(&o.stdout).to_string()); } Value::None }
+pub fn builtin_sys_clipboard_set(val: Value) -> Value { if let Value::Str(s) = val { use std::io::Write; if let Ok(mut child) = Command::new("xclip").arg("-selection").arg("clipboard").stdin(std::process::Stdio::piped()).spawn() { if let Some(mut stdin) = child.stdin.take() { stdin.write_all(s.as_bytes()).ok(); } child.wait().ok(); return Value::Num(1); } } Value::Num(0) }
 pub fn builtin_sys_env(n: Value) -> Value { if let Value::Str(name) = n { if let Ok(v) = std::env::var(name) { return Value::Str(v); } } Value::None }
 pub fn builtin_sys_env_set(n: Value, v: Value) -> Value { if let (Value::Str(name), Value::Str(val)) = (n, v) { std::env::set_var(name, val); return Value::Num(1); } Value::Num(0) }
 pub fn builtin_sys_time() -> Value { Value::Num(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64) }
@@ -949,6 +969,8 @@ pub fn builtin_map_get(map: Value, key: Value) -> Value { if let (Value::Map(m),
 pub fn builtin_map_set(map: Value, key: Value, val: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow_mut().insert(k, val); return Value::Num(1); } Value::Num(0) }
 pub fn builtin_map_has(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { return Value::Num(if m.borrow().contains_key(&k) { 1 } else { 0 }); } Value::Num(0) }
 pub fn builtin_map_keys(map: Value) -> Value { if let Value::Map(m) = map { let mut keys: Vec<Value> = m.borrow().keys().map(|k| Value::Str(k.clone())).collect(); keys.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)); return Value::Array(Rc::new(RefCell::new(keys))); } Value::Array(Rc::new(RefCell::new(Vec::new()))) }
+pub fn builtin_map_values(map: Value) -> Value { if let Value::Map(m) = map { let vals: Vec<Value> = m.borrow().values().cloned().collect(); return Value::Array(Rc::new(RefCell::new(vals))); } Value::Array(Rc::new(RefCell::new(Vec::new()))) }
+pub fn builtin_map_copy(map: Value) -> Value { if let Value::Map(m) = map { return Value::Map(Rc::new(RefCell::new(m.borrow().clone()))); } Value::Map(Rc::new(RefCell::new(HashMap::new()))) }
 pub fn builtin_map_remove(map: Value, key: Value) -> Value { if let (Value::Map(m), Value::Str(k)) = (map, key) { m.borrow_mut().remove(&k); return Value::Num(1); } Value::Num(0) }
 "##;
 
@@ -963,6 +985,7 @@ pub fn builtin_arr_reverse(arr: Value) -> Value { if let Value::Array(a) = arr {
 pub fn builtin_arr_sort(arr: Value) -> Value { if let Value::Array(a) = arr { a.borrow_mut().sort_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal)); return Value::Num(1); } Value::Num(0) }
 pub fn builtin_arr_slice(arr: Value, start: Value, end: Value) -> Value { if let Value::Array(a) = arr { let st = start.as_i64() as usize; let en = end.as_i64() as usize; let b = a.borrow(); if st < b.len() { let e = std::cmp::min(en, b.len()); return Value::Array(Rc::new(RefCell::new(b[st..e].to_vec()))); } } Value::Array(Rc::new(RefCell::new(Vec::new()))) }
 pub fn builtin_arr_find(arr: Value, val: Value) -> Value { if let Value::Array(a) = arr { if let Some(i) = a.borrow().iter().position(|x| x == &val) { return Value::Num(i as i64); } } Value::Num(-1) }
+pub fn builtin_arr_copy(arr: Value) -> Value { if let Value::Array(a) = arr { return Value::Array(Rc::new(RefCell::new(a.borrow().clone()))); } Value::Array(Rc::new(RefCell::new(Vec::new()))) }
 "##;
 
 const GUI_RUNTIME: &str = r##"

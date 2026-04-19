@@ -1,4 +1,4 @@
-VPL Language Specification & Manual (v1.9.0)
+VPL Language Specification & Manual (v2.0.0)
 ===========================================
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language for Linux.
@@ -64,11 +64,15 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 - arr_contains(a, v), arr_reverse(a), arr_sort(a), arr_slice(a, start, end)
 - arr_find(a, v)
 
+- map_new(), map_get(m, k), map_set(m, k, v), map_has(m, k)
+- map_keys(m), map_values(m), map_remove(m, k), map_copy(m)
+
 [System & Hardware]
 - sys_exec(cmd), sys_shell(cmd), sys_env(name), sys_args(), sys_env_set(n, v)
 - sys_hostname(), sys_username(), sys_user_home(), sys_os(), sys_pid()
 - sys_arch(), sys_cores(), sys_mem_total(), sys_mem_free()
 - sys_time(), sys_time_ms(), sys_exit(code), sys_sleep(ms), sys_wait(ms)
+- sys_clipboard_get(), sys_clipboard_set(text)
 
 [Math & Logic]
 - math_rand(min, max), math_pow(b, e), math_sqrt(n), math_abs(n)
@@ -93,18 +97,26 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 - gfx_open(w, h, title), gfx_close()
 - gfx_clear(color), gfx_pixel(x, y, color)
 - gfx_rect(x, y, w, h, color), gfx_line(x1, y1, x2, y2, color)
-- gfx_text(x, y, text, color), gfx_poll()
+- gfx_text(x, y, text, color), gfx_text_width(text), gfx_poll()
 
 4. LIBRARY SYSTEM (Auto-Inclusion)
 ----------------------------------
 VPL features an intelligent library auto-inclusion system designed to simplify code organization.
 - Libraries are saved as `.vplib` files.
-- The compiler automatically scans the current directory and the global `.vpl/lib/` directory.
-- If your main code (or another library) calls a function defined in any `.vplib` file (e.g., `my_custom_func()`), VPL will automatically include that library at compile time.
-- You do not need explicit `import` or `include` statements. Just call the function!
-- This ensures efficient, "pay-only-for-what-you-use" compilation with detailed resolution logs (use `--verbose` to see exactly which libraries were included).
+- The compiler automatically scans the current directory, `.vpl/`, `.vplib/`, and `~/.vpl/lib/`.
+- If your main code calls a function defined in any `.vplib` file (e.g., `my_custom_func()`), VPL automatically includes it.
 
-5. COMPILER USAGE
+5. AI GUIDE TO BUILDING LIBRARIES
+---------------------------------
+To create robust, professional `.vplib` libraries in VPL, follow these principles:
+1. **Namespacing:** Prefix all your library functions to prevent collisions (e.g., `gui_button()`, `net_request()`).
+2. **State Management:** Since VPL relies heavily on procedural structures, pass state objects (Dictionaries/Maps) around. Use `set state = map_new()` and `map_set(state, "clicks", 0)` to hold component states across the Event Loop.
+3. **Event Loops:** For GUI or Games, always create a `while running == 1` loop. Use `gfx_poll()` to fetch events (returns a Map with "type": "click"/"key").
+4. **Modularity:** Split your logic into smaller `.vplib` files (e.g., `gui_core.vplib`, `gui_input.vplib`). VPL's Tree-Shaking will only include what the user calls.
+5. **Low-level Access:** Use `gfx_text_width(text)` to build dynamic, responsive UI elements (like centering text in buttons or sizing Input Fields).
+6. **Inputs:** Simulate input fields by appending string keys from `gfx_poll()` to a state string, using `str_len` and `str_slice` for backspace functionality.
+
+6. COMPILER USAGE
 -----------------
 $ ./vpl run program.vpl             # Compile and run immediately
 $ ./vpl build program.vpl           # Build native binary

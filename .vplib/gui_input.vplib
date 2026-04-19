@@ -1,0 +1,52 @@
+// GUI Input Component v2.0.0
+func gui_input_draw(x, y, w, h, text, is_focused) {
+    set border_color = "#bdc3c7"
+    if is_focused == 1 {
+        set border_color = "#3498db"
+    }
+    
+    // Draw background
+    gfx_rect(x, y, w, h, "#ffffff")
+    
+    // Draw borders
+    gfx_rect(x, y, w, 2, border_color)
+    gfx_rect(x, y + h - 2, w, 2, border_color)
+    gfx_rect(x, y, 2, h, border_color)
+    gfx_rect(x + w - 2, y, 2, h, border_color)
+    
+    // Draw text
+    gfx_text(x + 5, y + (h / 2) + 5, text, "#2c3e50")
+    
+    // Draw cursor if focused
+    if is_focused == 1 {
+        set tw = gfx_text_width(text)
+        set ms = sys_time_ms()
+        set toggle = ms / 500
+        if toggle - (toggle / 2 * 2) == 0 {
+            gfx_rect(x + 5 + tw + 2, y + 8, 2, h - 16, "#2c3e50")
+        }
+    }
+}
+
+// Processes the event into the text state
+func gui_input_process_event(text, ev) {
+    if ev["type"] == "key" {
+        set key = ev["key"]
+        set code = ev["code"]
+        
+        // Handle Backspace (raw code usually 22 on X11)
+        if code == 22 {
+            set len = str_len(text)
+            if len > 0 {
+                return str_slice(text, 0, len - 1)
+            }
+            return text
+        }
+        
+        // If key lookup returned a character, append it
+        if str_len(key) > 0 {
+            return text + key
+        }
+    }
+    return text
+}

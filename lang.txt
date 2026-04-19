@@ -1,4 +1,4 @@
-VPL Language Specification & Manual (v1.5.0)
+VPL Language Specification & Manual (v1.6.0)
 ===========================================
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language for Linux.
@@ -47,6 +47,7 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 - gui_list(title, col, arr): Select from a list of items
 - gui_scale(title, text, min, max, val, step): Number slider
 - gui_notify(text, title)  : Passive notification
+- gui_text_info(file, title): Display text from a file
 
 [File System]
 - fs_list(path), fs_read(path), fs_write(path, str), fs_append(path, str)
@@ -56,6 +57,7 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 [Strings & Data]
 - str_len(s), str_at(s, i), str_upper(s), str_lower(s), str_trim(s)
 - str_trim_start(s), str_trim_end(s), str_repeat(s, n), str_is_num(s)
+- str_is_alpha(s), str_is_alnum(s)
 - str_pad_left(s, n, char), str_pad_right(s, n, char)
 - str_char_code(s, i), str_from_char_code(n)
 - str_split(s, sep), str_join(arr, sep), str_replace(s, o, n)
@@ -71,7 +73,8 @@ It compiles to native machine code via LLVM and features intelligent Tree-Shakin
 [System & Math]
 - sys_exec(cmd), sys_shell(cmd), sys_env(name), sys_args(), sys_env_set(n, v)
 - sys_hostname(), sys_username(), sys_user_home(), sys_os(), sys_pid()
-- sys_time(), sys_exit(code), sys_sleep(ms), sys_wait(ms)
+- sys_arch(), sys_cores(), sys_mem_total(), sys_mem_free()
+- sys_time(), sys_time_ms(), sys_exit(code), sys_sleep(ms), sys_wait(ms)
 - math_rand(min, max), math_pow(b, e), math_sqrt(n), math_abs(n)
 - math_log(n), math_log10(n), math_sin(n), math_cos(n), math_tan(n)
 - math_asin(n), math_acos(n), math_atan(n), math_floor(n), math_ceil(n)

@@ -29,7 +29,7 @@ impl Logger {
     fn header(&self, file: &str, target: &str, target_os: &str) {
         let rustc_ver = Command::new("rustc").arg("--version").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("unknown".to_string());
         println!("\n\x1b[1;36m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-        println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- INDUSTRIAL EDITION v1.4.0\x1b[0m            \x1b[1;36m│\x1b[0m");
+        println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- INDUSTRIAL EDITION v1.6.0\x1b[0m            \x1b[1;36m│\x1b[0m");
         println!("\x1b[1;36m├──────────────────────────────────────────────────────────┤\x1b[0m");
         println!("\x1b[1;36m│\x1b[0m \x1b[1;32m SOURCE:\x1b[0m {:<46} \x1b[1;36m│\x1b[0m", file);
         println!("\x1b[1;36m│\x1b[0m \x1b[1;32m BINARY:\x1b[0m {:<46} \x1b[1;36m│\x1b[0m", target);
@@ -100,7 +100,7 @@ fn check_dependencies() -> Vec<String> {
 
 fn print_usage() {
     println!("\n\x1b[1;36m┌──────────────────────────────────────────────────────────┐\x1b[0m");
-    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v1.5.0\x1b[0m            \x1b[1;36m│\x1b[0m");
+    println!("\x1b[1;36m│\x1b[0m  \x1b[1;37mVPL SYSTEMS \x1b[0;34m- OPTIMIZED COMPILER v1.6.0\x1b[0m            \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m├──────────────────────────────────────────────────────────┤\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m  \x1b[1;32mUSAGE:\x1b[0m                                               \x1b[1;36m│\x1b[0m");
     println!("\x1b[1;36m│\x1b[0m    vpl build <file.vpl> [options]                      \x1b[1;36m│\x1b[0m");

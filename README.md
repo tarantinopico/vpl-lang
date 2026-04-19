@@ -1,4 +1,4 @@
-# VPL Systems - Optimized Native Compiler (v1.5.0)
+# VPL Systems - Optimized Native Compiler (v1.6.0)
 
 VPL (Visual Programming Language) is a high-performance, statically compiled programming language designed for Linux (Solus) environments. It features a modern syntax, an extensive standard library, and a professional-grade compiler that produces tiny, standalone native binaries.
 
@@ -55,7 +55,7 @@ Launch the TUI file explorer to browse, build, and run your scripts visually:
 ## 📝 Syntax at a Glance
 
 ```vpl
-// Example: Modern VPL Script v1.5.0
+// Example: Modern VPL Script v1.6.0
 func diagnose() {
     set ip = net_ip()
     set host = net_hostname()

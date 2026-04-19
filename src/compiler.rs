@@ -266,6 +266,8 @@ fn compile_expr(expr: &Expr) -> String {
                 "str_ends_with" => format!("builtin_str_ends_with({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "str_repeat" => format!("builtin_str_repeat({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 "str_is_num" => format!("builtin_str_is_num({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "str_is_alpha" => format!("builtin_str_is_alpha({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "str_is_alnum" => format!("builtin_str_is_alnum({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "str_pad_left" => format!("builtin_str_pad_left({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
                 "str_pad_right" => format!("builtin_str_pad_right({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
                 "str_char_code" => format!("builtin_str_char_code({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
@@ -358,6 +360,7 @@ fn compile_expr(expr: &Expr) -> String {
                 "sys_os" => "builtin_sys_os()".to_string(),
                 "sys_pid" => "builtin_sys_pid()".to_string(),
                 "sys_time" => "builtin_sys_time()".to_string(),
+                "sys_time_ms" => "builtin_sys_time_ms()".to_string(),
                 "sys_exit" => format!("builtin_sys_exit({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_args" => "builtin_sys_args()".to_string(),
                 "sys_cwd" => "builtin_sys_cwd()".to_string(),
@@ -365,6 +368,10 @@ fn compile_expr(expr: &Expr) -> String {
                 "sys_shell" => format!("builtin_sys_shell({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_sleep" => format!("builtin_sys_sleep({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
                 "sys_wait" => format!("builtin_sys_sleep({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
+                "sys_arch" => "builtin_sys_arch()".to_string(),
+                "sys_cores" => "builtin_sys_cores()".to_string(),
+                "sys_mem_total" => "builtin_sys_mem_total()".to_string(),
+                "sys_mem_free" => "builtin_sys_mem_free()".to_string(),
                 
                 // Network
                 "net_get" => format!("builtin_net_get({})", arg_strs.get(0).unwrap_or(&"Value::None".to_string())),
@@ -393,6 +400,7 @@ fn compile_expr(expr: &Expr) -> String {
                 "gui_list" => format!("builtin_gui_list({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
                 "gui_scale" => format!("builtin_gui_scale({}, {}, {}, {}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string()), arg_strs.get(3).unwrap_or(&"Value::None".to_string()), arg_strs.get(4).unwrap_or(&"Value::None".to_string()), arg_strs.get(5).unwrap_or(&"Value::None".to_string())),
                 "gui_notify" => format!("builtin_gui_notify({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
+                "gui_text_info" => format!("builtin_gui_text_info({}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string())),
                 
                 // Color Tools
                 "color_rgb" => format!("builtin_color_rgb({}, {}, {})", arg_strs.get(0).unwrap_or(&"Value::None".to_string()), arg_strs.get(1).unwrap_or(&"Value::None".to_string()), arg_strs.get(2).unwrap_or(&"Value::None".to_string())),
@@ -564,6 +572,8 @@ pub fn builtin_str_starts_with(v: Value, p: Value) -> Value { if let (Value::Str
 pub fn builtin_str_ends_with(v: Value, p: Value) -> Value { if let (Value::Str(s), Value::Str(suffix)) = (v, p) { Value::Num(if s.ends_with(&suffix) { 1 } else { 0 }) } else { Value::Num(0) } }
 pub fn builtin_str_repeat(v: Value, n: Value) -> Value { if let (Value::Str(s), Value::Num(n)) = (v, n) { return Value::Str(s.repeat(n as usize)); } Value::None }
 pub fn builtin_str_is_num(v: Value) -> Value { if let Value::Str(s) = v { Value::Num(if s.parse::<i64>().is_ok() { 1 } else { 0 }) } else { Value::Num(0) } }
+pub fn builtin_str_is_alpha(v: Value) -> Value { if let Value::Str(s) = v { Value::Num(if s.chars().all(|c| c.is_alphabetic()) { 1 } else { 0 }) } else { Value::Num(0) } }
+pub fn builtin_str_is_alnum(v: Value) -> Value { if let Value::Str(s) = v { Value::Num(if s.chars().all(|c| c.is_alphanumeric()) { 1 } else { 0 }) } else { Value::Num(0) } }
 pub fn builtin_str_pad_left(v: Value, n: Value, ch: Value) -> Value { if let (Value::Str(s), Value::Num(n), Value::Str(c)) = (v, n, ch) { let mut res = c.repeat(n as usize); res.push_str(&s); return Value::Str(res); } Value::None }
 pub fn builtin_str_pad_right(v: Value, n: Value, ch: Value) -> Value { if let (Value::Str(s), Value::Num(n), Value::Str(c)) = (v, n, ch) { let mut res = s; res.push_str(&c.repeat(n as usize)); return Value::Str(res); } Value::None }
 pub fn builtin_str_char_code(v: Value, idx: Value) -> Value { if let (Value::Str(s), Value::Num(i)) = (v, idx) { if let Some(c) = s.chars().nth(i as usize) { return Value::Num(c as i64); } } Value::None }
@@ -609,6 +619,7 @@ pub fn builtin_sys_exec(cmd: Value) -> Value { if let Value::Str(c) = cmd { if l
 pub fn builtin_sys_env(n: Value) -> Value { if let Value::Str(name) = n { if let Ok(v) = std::env::var(name) { return Value::Str(v); } } Value::None }
 pub fn builtin_sys_env_set(n: Value, v: Value) -> Value { if let (Value::Str(name), Value::Str(val)) = (n, v) { std::env::set_var(name, val); return Value::Num(1); } Value::Num(0) }
 pub fn builtin_sys_time() -> Value { Value::Num(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64) }
+pub fn builtin_sys_time_ms() -> Value { Value::Num(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64) }
 pub fn builtin_sys_exit(code: Value) -> Value { std::process::exit(code.as_i64() as i32); }
 pub fn builtin_sys_args() -> Value { let args: Vec<Value> = std::env::args().skip(1).map(Value::Str).collect(); Value::Array(Rc::new(RefCell::new(args))) }
 pub fn builtin_sys_cwd() -> Value { if let Ok(p) = std::env::current_dir() { Value::Str(p.to_string_lossy().to_string()) } else { Value::None } }
@@ -617,6 +628,10 @@ pub fn builtin_sys_shell(cmd: Value) -> Value { if let Value::Str(c) = cmd { if 
 pub fn builtin_sys_sleep(ms: Value) -> Value { std::thread::sleep(std::time::Duration::from_millis(ms.as_i64() as u64)); Value::None }
 pub fn builtin_sys_pid() -> Value { Value::Num(std::process::id() as i64) }
 pub fn builtin_sys_os() -> Value { Value::Str(std::env::consts::OS.to_string()) }
+pub fn builtin_sys_arch() -> Value { Value::Str(std::env::consts::ARCH.to_string()) }
+pub fn builtin_sys_cores() -> Value { if let Ok(c) = fs::read_to_string("/proc/cpuinfo") { let num = c.lines().filter(|l| l.starts_with("processor")).count(); return Value::Num(num as i64); } Value::Num(1) }
+pub fn builtin_sys_mem_total() -> Value { if let Ok(c) = fs::read_to_string("/proc/meminfo") { if let Some(l) = c.lines().find(|l| l.starts_with("MemTotal:")) { let p: Vec<&str> = l.split_whitespace().collect(); if p.len() >= 2 { if let Ok(m) = p[1].parse::<i64>() { return Value::Num(m * 1024); } } } } Value::Num(0) }
+pub fn builtin_sys_mem_free() -> Value { if let Ok(c) = fs::read_to_string("/proc/meminfo") { if let Some(l) = c.lines().find(|l| l.starts_with("MemAvailable:") || l.starts_with("MemFree:")) { let p: Vec<&str> = l.split_whitespace().collect(); if p.len() >= 2 { if let Ok(m) = p[1].parse::<i64>() { return Value::Num(m * 1024); } } } } Value::Num(0) }
 pub fn builtin_sys_hostname() -> Value { if let Ok(h) = fs::read_to_string("/proc/sys/kernel/hostname") { return Value::Str(h.trim().to_string()); } Value::Str("unknown".to_string()) }
 pub fn builtin_sys_username() -> Value { if let Ok(u) = std::env::var("USER") { return Value::Str(u); } Value::Str("unknown".to_string()) }
 pub fn builtin_sys_user_home() -> Value { if let Ok(u) = std::env::var("HOME") { return Value::Str(u); } Value::Str("unknown".to_string()) }
@@ -673,6 +688,7 @@ pub fn builtin_gui_list(title: Value, col: Value, items: Value) -> Value { if le
 pub fn builtin_gui_scale(title: Value, text: Value, min: Value, max: Value, val: Value, step: Value) -> Value { if let (Value::Str(t), Value::Str(tx)) = (title, text) { if let Ok(out) = Command::new("zenity").arg("--scale").arg("--title").arg(t).arg("--text").arg(tx).arg(format!("--min-value={}", min.as_i64())).arg(format!("--max-value={}", max.as_i64())).arg(format!("--value={}", val.as_i64())).arg(format!("--step={}", step.as_i64())).output() { if out.status.success() { let res = String::from_utf8_lossy(&out.stdout).trim().to_string(); if let Ok(n) = res.parse::<i64>() { return Value::Num(n); } } } } Value::None }
 pub fn builtin_gui_notify(text: Value, title: Value) -> Value { if let (Value::Str(tx), Value::Str(ti)) = (text, title) { Command::new("zenity").arg("--notification").arg("--text").arg(tx).arg("--title").arg(ti).spawn().ok(); } Value::None }
 pub fn builtin_gui_file_save(title: Value) -> Value { if let Value::Str(t) = title { if let Ok(out) = Command::new("zenity").arg("--file-selection").arg("--save").arg("--confirm-overwrite").arg("--title").arg(t).output() { if out.status.success() { return Value::Str(String::from_utf8_lossy(&out.stdout).trim().to_string()); } } } Value::None }
+pub fn builtin_gui_text_info(filename: Value, title: Value) -> Value { if let (Value::Str(f), Value::Str(t)) = (filename, title) { Command::new("zenity").arg("--text-info").arg(format!("--filename={}", f)).arg("--title").arg(t).output().ok(); } Value::None }
 "##;
 
 const JSON_RUNTIME: &str = r##"

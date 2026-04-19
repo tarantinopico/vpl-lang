@@ -1,0 +1,22 @@
+func main() {
+    say "Vítejte v editoru souborů VPL!"
+    say "Zadejte název souboru, který chcete vytvořit:"
+    set filename = input()
+    
+    say "Napište obsah souboru:"
+    set content = input()
+    
+    set success = fs_write(filename, content)
+    
+    if success == 1 {
+        say "Soubor '" + filename + "' byl úspěšně uložen."
+        say "Jeho obsah je:"
+        set read_back = fs_read(filename)
+        say "---"
+        say read_back
+        say "---"
+        say "Délka obsahu: " + str_len(read_back) + " znaků."
+    } else {
+        say "Chyba při zápisu souboru!"
+    }
+}

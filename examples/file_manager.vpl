@@ -1,0 +1,100 @@
+func format_size(size) {
+    if size < 1024 {
+        return num_to_str(size) + " B"
+    }
+    if size < 1048576 {
+        return num_to_str(size / 1024) + " KB"
+    }
+    return num_to_str(size / 1048576) + " MB"
+}
+
+func main() {
+    tui_init()
+    tui_hide_cursor()
+    
+    set running = 1
+    set path = "."
+    set selected = 0
+    set files = fs_list(path)
+    set total_files = arr_len(files)
+    
+    while running == 1 {
+        tui_clear()
+        set w = tui_width()
+        set h = tui_height()
+        
+        // Border
+        tui_set_color(6, 0)
+        tui_draw_box(1, 1, w, h)
+        
+        // Title
+        tui_set_color(7, 0)
+        tui_print(3, 2, "VPL Explorer | Cesta: " + path)
+        tui_print(3, h - 1, " [q] Konec | [Enter] Otevřít | [Šipky] Pohyb ")
+        
+        set visible_slots = h - 6
+        set start_idx = 0
+        if selected >= visible_slots {
+            set start_idx = selected - visible_slots + 1
+        }
+        
+        set i = 0
+        while i < visible_slots {
+            set f_idx = start_idx + i
+            if f_idx < total_files {
+                set name = files[f_idx]
+                set full = path + "/" + name
+                set is_dir = fs_is_dir(full)
+                set size = fs_size(full)
+                
+                if f_idx == selected {
+                    tui_set_color(0, 7)
+                } else {
+                    if is_dir == 1 {
+                        tui_set_color(4, 0)
+                    } else {
+                        tui_set_color(7, 0)
+                    }
+                }
+                
+                set type_str = "[FILE]"
+                if is_dir == 1 { set type_str = "[DIR ]" }
+                
+                set line_text = type_str + " " + name
+                if is_dir == 0 {
+                    set line_text = line_text + " (" + format_size(size) + ")"
+                }
+                
+                tui_print(3, 4 + i, line_text)
+                tui_reset_color()
+            }
+            set i = i + 1
+        }
+        
+        set key = tui_read_key()
+        if key == "q" { set running = 0 }
+        if key == "up" {
+            if selected > 0 { set selected = selected - 1 }
+        }
+        if key == "down" {
+            if selected < (total_files - 1) { set selected = selected + 1 }
+        }
+        if key == "enter" {
+            if total_files > 0 {
+                set name = files[selected]
+                set next_path = path + "/" + name
+                if fs_is_dir(next_path) == 1 {
+                    set path = next_path
+                    set files = fs_list(path)
+                    set total_files = arr_len(files)
+                    set selected = 0
+                }
+            }
+        }
+    }
+    
+    tui_show_cursor()
+    tui_reset_color()
+    tui_clear()
+    tui_restore()
+}

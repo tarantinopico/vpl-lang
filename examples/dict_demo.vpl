@@ -1,0 +1,59 @@
+func print_item(k, v) {
+    say "  " + k + ": " + v
+}
+
+func main() {
+    tui_init()
+    tui_clear()
+    tui_hide_cursor()
+    
+    tui_set_title("VPL Dictionary Demo")
+    
+    // Create map
+    set user = map_new()
+    
+    // Set values
+    set user["name"] = "Alice"
+    map_set(user, "age", 30)
+    set user["city"] = "Prague"
+    set user["role"] = "Admin"
+    
+    set w = 40
+    set h = 15
+    set x = (tui_width() - w) / 2
+    set y = (tui_height() - h) / 2
+    
+    tui_draw_window(x, y, w, h, "User Profile")
+    
+    tui_bold(1)
+    tui_print(x + 2, y + 2, "Data from Map:")
+    tui_bold(0)
+    
+    // Iterate over map keys
+    set keys = map_keys(user)
+    set total = arr_len(keys)
+    set i = 0
+    
+    tui_print(x + 2, y + 4, "Key count: " + total)
+    
+    while i < total {
+        set k = keys[i]
+        set v = user[k]
+        tui_print(x + 2, y + 5 + i, "- " + k + ": " + v)
+        set i = i + 1
+    }
+    
+    tui_print(x + 2, y + h - 4, "Is Admin? " + map_has(user, "role"))
+    
+    // Remove element
+    map_remove(user, "age")
+    
+    tui_set_color(0, 7)
+    tui_print(x + 2, y + h - 2, " Press any key to exit ")
+    tui_reset_color()
+    
+    tui_read_key()
+    
+    tui_show_cursor()
+    tui_restore()
+}

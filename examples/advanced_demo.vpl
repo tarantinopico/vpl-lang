@@ -1,0 +1,46 @@
+func main() {
+    say "=== ADVANCED VPL DEMO ==="
+    
+    // Type checking
+    set n = 42
+    set s = "hello"
+    set a = [1, 2]
+    set m = map_new()
+    
+    say "Type of n: " + type_of(n)
+    say "Type of s: " + type_of(s)
+    say "Type of a: " + type_of(a)
+    say "Type of m: " + type_of(m)
+    
+    // Advanced Math
+    say "2^10 = " + math_pow(2, 10)
+    say "sqrt(144) = " + math_sqrt(144)
+    
+    // JSON
+    set m["name"] = "Solus"
+    set m["version"] = 4
+    set m["features"] = ["fast", "rolling", "vpl"]
+    
+    say "Map as JSON: " + json_stringify(m)
+    
+    // System Data
+    say "Running on OS: " + sys_os()
+    say "Process ID (PID): " + sys_pid()
+    
+    // Advanced String operations
+    set text = "  VPL Compiler is fast!  "
+    say "Original: '" + text + "'"
+    
+    set trimmed = str_trim(text)
+    say "Trimmed: '" + trimmed + "'"
+    
+    if str_starts_with(trimmed, "VPL") == 1 {
+        say "Yes, starts with VPL"
+    }
+    
+    say "Repeated 3x: " + str_repeat("fast!", 3)
+    
+    if str_is_num("12345") == 1 {
+        say "12345 is a valid number"
+    }
+}

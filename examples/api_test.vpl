@@ -1,0 +1,42 @@
+func main() {
+    say "=== VPL System & Network API Test ==="
+    
+    // 1. System time
+    set time = sys_time()
+    say "Aktuální UNIX čas: " + time
+    
+    // 2. Math - Random
+    set r = math_rand(1, 100)
+    say "Náhodné číslo (1-100): " + r
+    
+    // 3. String manipulation
+    set text = "TOTO JE TEST"
+    say "Originál: " + text
+    say "Malá písmena: " + str_lower(text)
+    
+    set ip_str = "192.168.1.1"
+    set parts = str_split(ip_str, ".")
+    say "Rozdělená IP adresa, poslední část: " + parts[3]
+    
+    // 4. System Exec
+    say "Spouštím shell příkaz 'whoami'..."
+    set user = sys_exec("whoami")
+    // Note: sys_exec captures stdout which includes a newline, so we strip it conceptually or just print
+    say "Jsi přihlášen jako: " + user
+    
+    // 5. Environment Variables
+    set path_env = sys_env("PATH")
+    say "Délka tvé PATH proměnné je " + str_len(path_env) + " znaků."
+    
+    // 6. Network API
+    say "Stahuji data z internetu (http://date.jsontest.com/)..."
+    set response = net_get("http://date.jsontest.com/")
+    if str_len(response) > 0 {
+        say "Odpověď ze serveru:"
+        say response
+    } else {
+        say "Stažení selhalo nebo jsi offline."
+    }
+    
+    say "=== Konec Testu ==="
+}

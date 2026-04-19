@@ -1,0 +1,20 @@
+func main() {
+    gui_msg("Vítejte v první VPL GUI Aplikaci!", "VPL GUI Demo")
+    
+    set jmeno = gui_input("Jak se jmenuješ?", "Zadání jména")
+    
+    if str_len(jmeno) > 0 {
+        gui_msg("Ahoj " + jmeno + ", teď vyber nějaký soubor.", "Krok 2")
+        set soubor = gui_file("Vyber libovolný soubor")
+        
+        if str_len(soubor) > 0 {
+            set obsah = fs_read(soubor)
+            set velikost = str_len(obsah)
+            gui_msg("Vybral jsi: " + soubor + "\nVelikost: " + velikost + " znaků.", "Výsledek")
+        } else {
+            gui_error("Nevybral jsi žádný soubor!", "Chyba")
+        }
+    } else {
+        gui_error("Nezadal jsi jméno, aplikace se ukončí.", "Kritická chyba")
+    }
+}

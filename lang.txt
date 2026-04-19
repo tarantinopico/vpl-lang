@@ -1,0 +1,71 @@
+VPL Language Specification & Manual (v1.3.5)
+===========================================
+
+VPL (Visual Programming Language) is a professional systems language designed for high-performance applications on Linux. It compiles to native machine code via LLVM and features intelligent Tree-Shaking to minimize binary size.
+
+1. BASIC SYNTAX
+---------------
+- Blocks are enclosed in curly braces { }.
+- Variables are assigned using the `set` keyword: `set x = 10`
+- Print to console using `say`: `say "Hello"`
+- Functions: `func name(params) { ... }`
+- Comments: `// This is a comment`
+- Loops: `while condition { ... }` OR `for item in array { ... }`
+- Logic: ==, !=, <, >, <=, >=, +, -, *, /
+
+2. DATA TYPES
+-------------
+- Numbers (i64): `set n = 42`
+- Strings: `set s = "text"`
+- Arrays: `set a = [1, 2, 3]`
+- Dictionaries: `set m = map_new()`
+- Indexing: `set val = a[0]` or `set val = m["key"]`
+
+3. BUILT-IN FUNCTIONS
+---------------------
+[TUI Engine]
+- tui_init(), tui_restore(), tui_clear(), tui_beep()
+- tui_width(), tui_height(), tui_set_title(text)
+- tui_print(x, y, text), tui_cursor_pos(x, y)
+- tui_draw_box(x, y, w, h), tui_draw_window(x, y, w, h, title)
+- tui_draw_button(x, y, w, h, text), tui_menu(x, y, w, items, sel)
+- tui_read_key(), tui_read_line(x, y, w)
+- tui_bold(1/0), tui_underline(1/0)
+
+[GUI Engine (System Dialogs)]
+- gui_msg(text, title)     : Info dialog
+- gui_error(text, title)   : Error dialog
+- gui_warning(text, title) : Warning dialog
+- gui_question(text, title): Yes/No dialog (returns 1 or 0)
+- gui_input(text, title)   : Text input dialog
+- gui_password(title)      : Password input dialog
+- gui_file(title)          : File selection
+- gui_calendar(title)      : Date selection
+- gui_color(title)         : Color picker
+- gui_list(title, col, arr): Select from a list of items
+- gui_scale(title, text, min, max, val, step): Number slider
+
+[File System]
+- fs_list(path), fs_read(path), fs_write(path, str), fs_append(path, str)
+- fs_exists(path), fs_is_dir(path), fs_size(path), fs_delete(path)
+- fs_mkdir(path), fs_move(old, new), fs_copy(src, dst), fs_chmod(path, mode)
+
+[Strings & Data]
+- str_len(s), str_at(s, i), str_upper(s), str_lower(s), str_trim(s)
+- str_split(s, sep), str_join(arr, sep), str_replace(s, o, n)
+- str_starts_with(s, p), str_ends_with(s, p), str_repeat(s, n), str_is_num(s)
+- type_of(val), json_stringify(val), json_parse(json_str)
+
+[System & Math]
+- sys_exec(cmd), sys_shell(cmd), sys_env(name), sys_args()
+- sys_hostname(), sys_username(), sys_user_home(), sys_os(), sys_pid()
+- sys_time(), sys_exit(code), sys_sleep(ms)
+- math_rand(min, max), math_pow(b, e), math_sqrt(n), math_abs(n)
+- math_log(n), math_sin(n), math_cos(n), math_floor(n), math_ceil(n), math_round(n)
+
+4. COMPILER USAGE
+-----------------
+$ ./vpl build program.vpl           # Build native binary
+$ ./vpl build program.vpl -o myapp  # Build with custom name
+$ ./vpl build program.vpl -w        # Build for Windows (.exe)
+$ ./vpl tui                         # Interactive file selector

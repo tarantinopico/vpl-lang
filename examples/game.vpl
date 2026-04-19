@@ -1,0 +1,62 @@
+func main() {
+    tui_init()
+    tui_hide_cursor()
+    tui_clear()
+
+    set running = 1
+    set x = 40
+    set y = 12
+
+    while running == 1 {
+        tui_clear()
+        
+        tui_set_color(4, 0)
+        tui_draw_box(1, 1, 80, 24)
+        
+        tui_set_color(2, 0)
+        tui_print(x, y, "O")
+        
+        tui_set_color(7, 0)
+        tui_print(3, 2, "VPL Game - Use WASD or Arrows. Press 'q' to quit.")
+
+        set key = tui_read_key()
+        
+        if key == "q" {
+            set running = 0
+        }
+        if key == "up" {
+            set y = y - 1
+        }
+        if key == "w" {
+            set y = y - 1
+        }
+        if key == "down" {
+            set y = y + 1
+        }
+        if key == "s" {
+            set y = y + 1
+        }
+        if key == "left" {
+            set x = x - 1
+        }
+        if key == "a" {
+            set x = x - 1
+        }
+        if key == "right" {
+            set x = x + 1
+        }
+        if key == "d" {
+            set x = x + 1
+        }
+        
+        if x < 2 { set x = 2 }
+        if x > 78 { set x = 78 }
+        if y < 2 { set y = 2 }
+        if y > 22 { set y = 22 }
+    }
+
+    tui_show_cursor()
+    tui_reset_color()
+    tui_clear()
+    tui_restore()
+}

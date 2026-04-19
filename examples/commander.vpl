@@ -1,0 +1,309 @@
+func format_size(size) {
+    if size < 0 { return "DIR" }
+    if size < 1024 { return num_to_str(size) + " B" }
+    if size < 1048576 { return num_to_str(size / 1024) + " KB" }
+    return num_to_str(size / 1048576) + " MB"
+}
+
+func main() {
+    tui_init()
+    tui_hide_cursor()
+    tui_set_title("VPL COMMANDER PRO v2.0")
+    
+    set running = 1
+    set active_panel = 0 // 0 = Left, 1 = Right
+    
+    set p0_path = sys_cwd()
+    set p1_path = sys_cwd()
+    set p0_selected = 0
+    set p1_selected = 0
+    set p0_scroll = 0
+    set p1_scroll = 0
+    
+    set mode = "browse" // "browse", "edit", "view", "prompt"
+    set prompt_mode = "" // "mkdir", "newfile", "delete", "rename"
+    set prompt_text = ""
+    set target_file = ""
+    
+    set edit_file = ""
+    set edit_lines = []
+    set cursor_x = 0
+    set cursor_y = 0
+    set edit_scroll = 0
+
+    while running == 1 {
+        set w = tui_width()
+        set h = tui_height()
+        tui_clear()
+        
+        if mode == "browse" {
+            set panel_w = w / 2
+            set list_h = h - 5
+            
+            // Render Left Panel
+            tui_set_color(6, 0)
+            tui_draw_box(1, 1, panel_w, h - 3)
+            set p0_files = fs_list(p0_path)
+            if p0_path != "/" { 
+                set tmp = [".."]
+                set k = 0
+                while k < arr_len(p0_files) { arr_push(tmp, p0_files[k]); set k = k + 1 }
+                set p0_files = tmp
+            }
+            if p0_selected >= arr_len(p0_files) { set p0_selected = 0 }
+            
+            tui_set_color(7, 4)
+            if active_panel == 0 { tui_set_color(0, 7) }
+            tui_fill(2, 1, panel_w - 2, 1, " ")
+            tui_print(3, 1, " LEFT: " + p0_path)
+            tui_reset_color()
+            
+            set k = 0
+            while k < list_h {
+                set idx = p0_scroll + k
+                if idx < arr_len(p0_files) {
+                    set name = p0_files[idx]
+                    if idx == p0_selected {
+                        if active_panel == 0 { tui_set_color(0, 7) } else { tui_set_color(7, 8) }
+                        tui_fill(2, 3 + k, panel_w - 2, 1, " ")
+                    } else {
+                        tui_set_color(7, 0)
+                        if fs_is_dir(p0_path + "/" + name) == 1 { tui_set_color(4, 0) }
+                    }
+                    tui_print(3, 3 + k, str_slice(name, 0, panel_w - 5))
+                    tui_reset_color()
+                }
+                set k = k + 1
+            }
+
+            // Render Right Panel
+            tui_set_color(6, 0)
+            tui_draw_box(panel_w + 1, 1, w - panel_w, h - 3)
+            set p1_files = fs_list(p1_path)
+            if p1_path != "/" {
+                set tmp = [".."]
+                set k = 0
+                while k < arr_len(p1_files) { arr_push(tmp, p1_files[k]); set k = k + 1 }
+                set p1_files = tmp
+            }
+            if p1_selected >= arr_len(p1_files) { set p1_selected = 0 }
+
+            tui_set_color(7, 4)
+            if active_panel == 1 { tui_set_color(0, 7) }
+            tui_fill(panel_w + 2, 1, w - panel_w - 2, 1, " ")
+            tui_print(panel_w + 3, 1, " RIGHT: " + p1_path)
+            tui_reset_color()
+            
+            set k = 0
+            while k < list_h {
+                set idx = p1_scroll + k
+                if idx < arr_len(p1_files) {
+                    set name = p1_files[idx]
+                    if idx == p1_selected {
+                        if active_panel == 1 { tui_set_color(0, 7) } else { tui_set_color(7, 8) }
+                        tui_fill(panel_w + 2, 3 + k, w - panel_w - 2, 1, " ")
+                    } else {
+                        tui_set_color(7, 0)
+                        if fs_is_dir(p1_path + "/" + name) == 1 { tui_set_color(4, 0) }
+                    }
+                    tui_print(panel_w + 3, 3 + k, str_slice(name, 0, w - panel_w - 5))
+                    tui_reset_color()
+                }
+                set k = k + 1
+            }
+
+            // Status bar
+            tui_set_color(0, 7)
+            tui_fill(1, h - 2, w, 3, " ")
+            tui_print(2, h - 1, "TAB:Swap | F1:Edit | F2:New | F3:Mkdir | F4:Del | F5:Ren | Q:Quit")
+            tui_reset_color()
+
+            // Controls
+            set key = tui_read_key()
+            if key == "q" { set running = 0 }
+            if key == "tab" { set active_panel = 1 - active_panel }
+            
+            set cur_path = p0_path
+            set cur_sel = p0_selected
+            set cur_scr = p0_scroll
+            set cur_files = p0_files
+            if active_panel == 1 {
+                set cur_path = p1_path
+                set cur_sel = p1_selected
+                set cur_scr = p1_scroll
+                set cur_files = p1_files
+            }
+            
+            if key == "up" { if cur_sel > 0 { set cur_sel = cur_sel - 1 } }
+            if key == "down" { if cur_sel < arr_len(cur_files) - 1 { set cur_sel = cur_sel + 1 } }
+            if cur_sel < cur_scr { set cur_scr = cur_sel }
+            if cur_sel >= cur_scr + list_h { set cur_scr = cur_sel - list_h + 1 }
+
+            if key == "enter" {
+                if arr_len(cur_files) > 0 {
+                    set name = cur_files[cur_sel]
+                    if name == ".." {
+                        set parts = str_split(cur_path, "/")
+                        if arr_len(parts) > 2 {
+                            set new_path = ""
+                            set j = 1
+                            while j < arr_len(parts) - 1 { set new_path = new_path + "/" + parts[j] set j = j + 1 }
+                            set cur_path = new_path
+                        } else { set cur_path = "/" }
+                        set cur_sel = 0 set cur_scr = 0
+                    } else {
+                        set full = cur_path
+                        if cur_path != "/" { set full = full + "/" }
+                        set full = full + name
+                        if fs_is_dir(full) == 1 { set cur_path = full set cur_sel = 0 set cur_scr = 0 }
+                    }
+                }
+            }
+            if key == "f1" {
+                if arr_len(cur_files) > 0 {
+                    set name = cur_files[cur_sel]
+                    if name != ".." {
+                        set full = cur_path
+                        if cur_path != "/" { set full = full + "/" }
+                        set full = full + name
+                        if fs_is_dir(full) == 0 {
+                            set mode = "edit" set edit_file = full
+                            set content = fs_read(full)
+                            if content == "none" { set content = "" }
+                            set edit_lines = str_split(content, "\n")
+                            if arr_len(edit_lines) == 0 { arr_push(edit_lines, "") }
+                            set cursor_x = 0 set cursor_y = 0 set edit_scroll = 0
+                        }
+                    }
+                }
+            }
+            if key == "f2" { set mode = "prompt" set prompt_mode = "newfile" set prompt_text = "" }
+            if key == "f3" { set mode = "prompt" set prompt_mode = "mkdir" set prompt_text = "" }
+            if key == "f4" {
+                if arr_len(cur_files) > 0 {
+                    set name = cur_files[cur_sel]
+                    if name != ".." {
+                        set full = cur_path
+                        if cur_path != "/" { set full = full + "/" }
+                        set full = full + name
+                        fs_delete(full)
+                    }
+                }
+            }
+            if key == "f5" {
+                if arr_len(cur_files) > 0 {
+                    set name = cur_files[cur_sel]
+                    if name != ".." {
+                        set mode = "prompt" set prompt_mode = "rename" set prompt_text = name set target_file = name
+                    }
+                }
+            }
+
+            if active_panel == 0 { set p0_path = cur_path set p0_selected = cur_sel set p0_scroll = cur_scr }
+            else { set p1_path = cur_path set p1_selected = cur_sel set p1_scroll = cur_scr }
+        }
+        
+        if mode == "prompt" {
+            set title = "ACTION"
+            if prompt_mode == "newfile" { set title = "NEW FILE" }
+            if prompt_mode == "mkdir" { set title = "NEW DIRECTORY" }
+            if prompt_mode == "rename" { set title = "RENAME: " + target_file }
+            
+            tui_draw_window(w/2 - 20, h/2 - 3, 40, 6, title)
+            tui_print(w/2 - 18, h/2 - 1, ">")
+            tui_set_color(0, 7)
+            tui_fill(w/2 - 16, h/2 - 1, 32, 1, " ")
+            tui_print(w/2 - 16, h/2 - 1, prompt_text)
+            tui_reset_color()
+            
+            set key = tui_read_key()
+            if key == "esc" { set mode = "browse" }
+            if key == "enter" {
+                set cur_path = p0_path
+                if active_panel == 1 { set cur_path = p1_path }
+                set full = cur_path
+                if cur_path != "/" { set full = full + "/" }
+                set final = full + prompt_text
+                
+                if prompt_mode == "newfile" { fs_write(final, "") }
+                if prompt_mode == "mkdir" { fs_mkdir(final) }
+                if prompt_mode == "rename" { fs_move(full + target_file, final) }
+                set mode = "browse"
+            }
+            if key == "backspace" {
+                set l = str_len(prompt_text)
+                if l > 0 { set prompt_text = str_slice(prompt_text, 0, l - 1) }
+            }
+            if str_len(key) == 1 { set prompt_text = prompt_text + key }
+        }
+        
+        if mode == "edit" {
+            tui_set_color(6, 0)
+            tui_draw_box(1, 1, w, h - 2)
+            tui_set_color(7, 4)
+            tui_fill(2, 1, w - 2, 1, " ")
+            tui_print(3, 1, " EDITOR: " + edit_file)
+            tui_reset_color()
+            tui_print(3, h - 1, "F2: Save | ESC: Exit | Type text...")
+            
+            set visible_e = h - 5
+            if cursor_y < edit_scroll { set edit_scroll = cursor_y }
+            if cursor_y >= edit_scroll + visible_e { set edit_scroll = cursor_y - visible_e + 1 }
+            
+            set i = 0
+            while i < visible_e {
+                set l_idx = edit_scroll + i
+                if l_idx < arr_len(edit_lines) {
+                    tui_print(3, 3 + i, str_slice(edit_lines[l_idx], 0, w - 5))
+                }
+                set i = i + 1
+            }
+            
+            set cur_l = edit_lines[cursor_y]
+            set cur_char = " "
+            if cursor_x < str_len(cur_l) { set cur_char = str_at(cur_l, cursor_x) }
+            tui_set_color(0, 7)
+            tui_print(3 + cursor_x, 3 + cursor_y - edit_scroll, cur_char)
+            tui_reset_color()
+            
+            set key = tui_read_key()
+            if key == "esc" { set mode = "browse" }
+            if key == "f2" { fs_write(edit_file, str_join(edit_lines, "\n")) set mode = "browse" }
+            if key == "up" { if cursor_y > 0 { set cursor_y = cursor_y - 1 set cursor_x = math_min(cursor_x, str_len(edit_lines[cursor_y])) } }
+            if key == "down" { if cursor_y < arr_len(edit_lines) - 1 { set cursor_y = cursor_y + 1 set cursor_x = math_min(cursor_x, str_len(edit_lines[cursor_y])) } }
+            if key == "left" {
+                if cursor_x > 0 { set cursor_x = cursor_x - 1 }
+                else { if cursor_y > 0 { set cursor_y = cursor_y - 1 set cursor_x = str_len(edit_lines[cursor_y]) } }
+            }
+            if key == "right" {
+                if cursor_x < str_len(edit_lines[cursor_y]) { set cursor_x = cursor_x + 1 }
+                else { if cursor_y < arr_len(edit_lines) - 1 { set cursor_y = cursor_y + 1 set cursor_x = 0 } }
+            }
+            if key == "backspace" {
+                if cursor_x > 0 {
+                    set line = edit_lines[cursor_y]
+                    set edit_lines[cursor_y] = str_slice(line, 0, cursor_x - 1) + str_slice(line, cursor_x, str_len(line) - cursor_x)
+                    set cursor_x = cursor_x - 1
+                }
+            }
+            if key == "enter" {
+                set line = edit_lines[cursor_y]
+                set rest = str_slice(line, cursor_x, str_len(line) - cursor_x)
+                set edit_lines[cursor_y] = str_slice(line, 0, cursor_x)
+                set new_arr = [] set j = 0
+                while j <= cursor_y { arr_push(new_arr, edit_lines[j]) set j = j + 1 }
+                arr_push(new_arr, rest)
+                while j < arr_len(edit_lines) { arr_push(new_arr, edit_lines[j]) set j = j + 1 }
+                set edit_lines = new_arr set cursor_y = cursor_y + 1 set cursor_x = 0
+            }
+            if str_len(key) == 1 {
+                set line = edit_lines[cursor_y]
+                set edit_lines[cursor_y] = str_slice(line, 0, cursor_x) + key + str_slice(line, cursor_x, str_len(line) - cursor_x)
+                set cursor_x = cursor_x + 1
+            }
+        }
+    }
+    
+    tui_show_cursor()
+    tui_restore()
+}

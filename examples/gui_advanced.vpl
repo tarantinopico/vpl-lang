@@ -1,0 +1,24 @@
+// Advanced GUI demonstration
+say "Starting Advanced GUI Test..."
+
+set title = "VPL Security"
+
+set pass = gui_password("Enter your secret password:")
+if pass != "1234" {
+    gui_error("Access Denied! Incorrect password.", title)
+    sys_exit(1)
+}
+
+gui_warning("Access Granted. Proceed with caution.", title)
+
+set q = gui_question("Do you want to see the options list?", title)
+if q == 1 {
+    set items = ["System Scan", "Network Diagnostics", "Database Repair", "Self Destruct"]
+    set action = gui_list("Select an action:", "Action", items)
+    gui_msg("You selected: " + action, title)
+}
+
+set val = gui_scale("Intensity", "Set the execution intensity:", 0, 100, 50, 10)
+gui_msg("Intensity set to: " + num_to_str(val) + "%", title)
+
+say "GUI Test Completed."
